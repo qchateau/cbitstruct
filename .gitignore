@@ -1,0 +1,12 @@
+.history/
+.vscode/
+build/
+tmp/
+dist/
+__pycache__/
+
+*.so
+*.egg-info/
+*.pyc
+
+clinic/_cbitstruct.c.h
