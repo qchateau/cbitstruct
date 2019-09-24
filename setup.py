@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import os
-from setuptools import setup, Extension
+from distutils.core import setup, Extension
 
 
-extra_compile_args = []
+extra_compile_args = ["-std=c11"]
 extra_link_args = []
 
 if os.environ.get("COVERAGE"):
@@ -13,6 +13,7 @@ if os.environ.get("COVERAGE"):
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
+
 
 setup(
     name="cbitstruct",
@@ -47,10 +48,8 @@ setup(
             "_cbitstruct",
             extra_compile_args=extra_compile_args,
             extra_link_args=extra_link_args,
-            sources=["_cbitstruct.c"],
+            sources=["cbitstruct/_cbitstruct.c"],
         )
     ],
-    py_modules=["cbitstruct"],
-    test_suite="tests",
-    tests_require=["bitstruct"],
+    packages=["cbitstruct", "cbitstruct.tests"],
 )

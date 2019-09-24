@@ -4,7 +4,7 @@ import bitstruct
 import timeit
 import unittest
 
-setup = """
+SETUP_SCRIPT = """
 import string
 import random
 import cbitstruct
@@ -32,9 +32,9 @@ NCBS = 100000
 
 
 class PerfTest(unittest.TestCase):
-    def generic_test(self, name, bitstruct, cbitstruct):
-        bstime = timeit.timeit(bitstruct, setup=setup, number=NBS) / NBS
-        cbstime = timeit.timeit(cbitstruct, setup=setup, number=NCBS) / NCBS
+    def generic(self, name, bitstruct, cbitstruct):
+        bstime = timeit.timeit(bitstruct, setup=SETUP_SCRIPT, number=NBS) / NBS
+        cbstime = timeit.timeit(cbitstruct, setup=SETUP_SCRIPT, number=NCBS) / NCBS
         improvement = bstime / cbstime
 
         print(
@@ -43,115 +43,111 @@ class PerfTest(unittest.TestCase):
         )
 
     def test_unpack(self):
-        self.generic_test(
+        self.generic(
             "unpack", "bitstruct.unpack(fmt, data)", "cbitstruct.unpack(fmt, data)"
         )
 
     def test_unpack_from(self):
-        self.generic_test(
+        self.generic(
             "unpack_from",
             "bitstruct.unpack_from(fmt, data, 3)",
             "cbitstruct.unpack_from(fmt, data, 3)",
         )
 
     def test_unpack_dict(self):
-        self.generic_test(
+        self.generic(
             "unpack_dict",
             "bitstruct.unpack_dict(fmt, names, data)",
             "cbitstruct.unpack_dict(fmt, names, data)",
         )
 
     def test_unpack_from_dict(self):
-        self.generic_test(
+        self.generic(
             "unpack_from_dict",
             "bitstruct.unpack_from_dict(fmt, names, data, 3)",
             "cbitstruct.unpack_from_dict(fmt, names, data, 3)",
         )
 
     def test_compiled_unpack(self):
-        self.generic_test("compiled unpack", "bs.unpack(data)", "cbs.unpack(data)")
+        self.generic("compiled unpack", "bs.unpack(data)", "cbs.unpack(data)")
 
     def test_compiled_unpack_from(self):
-        self.generic_test(
+        self.generic(
             "compiled unpack_from",
             "bs.unpack_from(data, 3)",
             "cbs.unpack_from(data, 3)",
         )
 
     def test_compiled_unpack_dict(self):
-        self.generic_test(
-            "compiled unpack_dict", "dbs.unpack(data)", "cdbs.unpack(data)"
-        )
+        self.generic("compiled unpack_dict", "dbs.unpack(data)", "cdbs.unpack(data)")
 
     def test_compiled_unpack_from_dict(self):
-        self.generic_test(
+        self.generic(
             "compiled unpack_from_dict",
             "dbs.unpack_from(data, 3)",
             "cdbs.unpack_from(data, 3)",
         )
 
     def test_pack(self):
-        self.generic_test(
+        self.generic(
             "pack", "bitstruct.pack(fmt, *values)", "cbitstruct.pack(fmt, *values)"
         )
 
     def test_pack_into(self):
-        self.generic_test(
+        self.generic(
             "pack_into",
             "bitstruct.pack_into(fmt, dst, 3, *values)",
             "cbitstruct.pack_into(fmt, dst, 3, *values)",
         )
 
     def test_pack_dict(self):
-        self.generic_test(
+        self.generic(
             "pack_dict",
             "bitstruct.pack_dict(fmt, names, values_dict)",
             "cbitstruct.pack_dict(fmt, names, values_dict)",
         )
 
     def test_pack_into_dict(self):
-        self.generic_test(
+        self.generic(
             "pack_into_dict",
             "bitstruct.pack_into_dict(fmt, names, dst, 3, values_dict)",
             "cbitstruct.pack_into_dict(fmt, names, dst, 3, values_dict)",
         )
 
     def test_compiled_pack(self):
-        self.generic_test("compiled pack", "bs.pack(*values)", "cbs.pack(*values)")
+        self.generic("compiled pack", "bs.pack(*values)", "cbs.pack(*values)")
 
     def test_compiled_pack_into(self):
-        self.generic_test(
+        self.generic(
             "compiled pack_into",
             "bs.pack_into(dst, 3, *values)",
             "cbs.pack_into(dst, 3, *values)",
         )
 
     def test_compiled_pack_dict(self):
-        self.generic_test(
+        self.generic(
             "compiled pack_dict", "dbs.pack(values_dict)", "cdbs.pack(values_dict)"
         )
 
     def test_compiled_pack_into_dict(self):
-        self.generic_test(
+        self.generic(
             "compiled pack_into_dict",
             "dbs.pack_into(dst, 3, values_dict)",
             "cdbs.pack_into(dst, 3, values_dict)",
         )
 
     def test_calcsize(self):
-        self.generic_test(
-            "calcsize", "bitstruct.calcsize(fmt)", "cbitstruct.calcsize(fmt)"
-        )
+        self.generic("calcsize", "bitstruct.calcsize(fmt)", "cbitstruct.calcsize(fmt)")
 
     def test_byteswap_str(self):
-        self.generic_test(
+        self.generic(
             "byteswap str",
             "bitstruct.byteswap('123456789', data, 0)",
             "cbitstruct.byteswap('123456789', data, 0)",
         )
 
     def test_byteswap_integer(self):
-        self.generic_test(
+        self.generic(
             "byteswap list of int",
             "bitstruct.byteswap([1,2,3,4,5,6,7,8,9], data, 0)",
             "cbitstruct.byteswap([1,2,3,4,5,6,7,8,9], data, 0)",

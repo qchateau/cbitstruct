@@ -4,9 +4,12 @@ build/
 tmp/
 dist/
 __pycache__/
+wheelhouse/
+compile_commands.json
 
 *.so
 *.egg-info/
 *.pyc
 
 clinic/_cbitstruct.c.h
+MANIFEST

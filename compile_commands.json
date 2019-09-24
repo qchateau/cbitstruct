@@ -1,7 +1,0 @@
-[
-{
-  "directory": "/home/quentin/dev/cbitstruct/",
-  "command": "/usr/bin/gcc -I/usr/include/python3.6m -O3 -DNDEBUG -o _cbitstruct.c.o -c /home/quentin/dev/cbitstruct/_cbitstruct.c",
-  "file": "/home/quentin/dev/cbitstruct/_cbitstruct.c"
-}
-]
