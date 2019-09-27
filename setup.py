@@ -1,10 +1,18 @@
 #!/usr/bin/env python
 import os
-from distutils.core import setup, Extension
+import sys
+from setuptools import setup, Extension
 
 
-extra_compile_args = ["-std=c11"]
+extra_compile_args = []
 extra_link_args = []
+
+
+if sys.platform == "win32":
+    extra_compile_args += []
+else:
+    extra_compile_args += ["-std=c11", "-Wall", "-Werror"]
+
 
 if os.environ.get("COVERAGE"):
     extra_compile_args += ["-g", "-O0", "-fprofile-arcs", "-ftest-coverage"]
@@ -17,7 +25,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="cbitstruct",
-    version="0.0.1",
+    version="1.0.0",
     author="Quentin CHATEAU",
     author_email="quentin.chateau@gmail.com",
     license="GPLv3",
@@ -26,7 +34,6 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     classifiers=[
-        "Development Status :: 4 - Beta",
         "Programming Language :: Python :: 3",
         "Programming Language :: C",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
@@ -49,6 +56,7 @@ setup(
             extra_compile_args=extra_compile_args,
             extra_link_args=extra_link_args,
             sources=["cbitstruct/_cbitstruct.c"],
+            include_dirs=["cbitstruct/"],
         )
     ],
     packages=["cbitstruct", "cbitstruct.tests"],

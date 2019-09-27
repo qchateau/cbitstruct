@@ -200,6 +200,48 @@ exit:
     return return_value;
 }
 
+PyDoc_STRVAR(CompiledFormatDict_pack_into__doc__,
+"pack_into($self, /, buf, offset, data, *, fill_padding=True)\n"
+"--\n"
+"\n"
+"Pack data into a bytes object, starting at bit offset given by the offset argument.\n"
+"\n"
+"With fill_padding=False, passing bits in \'buf\' will not be modified.");
+
+#define COMPILEDFORMATDICT_PACK_INTO_METHODDEF    \
+    {"pack_into", (PyCFunction)CompiledFormatDict_pack_into, METH_FASTCALL|METH_KEYWORDS, CompiledFormatDict_pack_into__doc__},
+
+static PyObject *
+CompiledFormatDict_pack_into_impl(PyCompiledFormatDictObject *self,
+                                  Py_buffer *buf, Py_ssize_t offset,
+                                  PyObject *data, int fill_padding);
+
+static PyObject *
+CompiledFormatDict_pack_into(PyCompiledFormatDictObject *self, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
+{
+    PyObject *return_value = NULL;
+    static const char * const _keywords[] = {"buf", "offset", "data", "fill_padding", NULL};
+    static _PyArg_Parser _parser = {"y*nO|$p:pack_into", _keywords, 0};
+    Py_buffer buf = {NULL, NULL};
+    Py_ssize_t offset;
+    PyObject *data;
+    int fill_padding = 1;
+
+    if (!_PyArg_ParseStackAndKeywords(args, nargs, kwnames, &_parser,
+        &buf, &offset, &data, &fill_padding)) {
+        goto exit;
+    }
+    return_value = CompiledFormatDict_pack_into_impl(self, &buf, offset, data, fill_padding);
+
+exit:
+    /* Cleanup for buf */
+    if (buf.obj) {
+       PyBuffer_Release(&buf);
+    }
+
+    return return_value;
+}
+
 PyDoc_STRVAR(CompiledFormatDict_unpack__doc__,
 "unpack($self, /, data)\n"
 "--\n"
@@ -309,6 +351,51 @@ pack_dict(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *k
     return_value = pack_dict_impl(module, fmt, names, data);
 
 exit:
+    return return_value;
+}
+
+PyDoc_STRVAR(pack_into_dict__doc__,
+"pack_into_dict($module, /, fmt, names, buf, offset, data, *,\n"
+"               fill_padding=True)\n"
+"--\n"
+"\n"
+"Pack data into a bytes object, starting at bit offset given by the offset argument.\n"
+"\n"
+"With fill_padding=False, passing bits in \'buf\' will not be modified.");
+
+#define PACK_INTO_DICT_METHODDEF    \
+    {"pack_into_dict", (PyCFunction)pack_into_dict, METH_FASTCALL|METH_KEYWORDS, pack_into_dict__doc__},
+
+static PyObject *
+pack_into_dict_impl(PyObject *module, const char *fmt, PyObject *names,
+                    Py_buffer *buf, Py_ssize_t offset, PyObject *data,
+                    int fill_padding);
+
+static PyObject *
+pack_into_dict(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
+{
+    PyObject *return_value = NULL;
+    static const char * const _keywords[] = {"fmt", "names", "buf", "offset", "data", "fill_padding", NULL};
+    static _PyArg_Parser _parser = {"sOy*nO|$p:pack_into_dict", _keywords, 0};
+    const char *fmt;
+    PyObject *names;
+    Py_buffer buf = {NULL, NULL};
+    Py_ssize_t offset;
+    PyObject *data;
+    int fill_padding = 1;
+
+    if (!_PyArg_ParseStackAndKeywords(args, nargs, kwnames, &_parser,
+        &fmt, &names, &buf, &offset, &data, &fill_padding)) {
+        goto exit;
+    }
+    return_value = pack_into_dict_impl(module, fmt, names, &buf, offset, data, fill_padding);
+
+exit:
+    /* Cleanup for buf */
+    if (buf.obj) {
+       PyBuffer_Release(&buf);
+    }
+
     return return_value;
 }
 
@@ -577,4 +664,4 @@ exit:
 
     return return_value;
 }
-/*[clinic end generated code: output=7a1379e9e1df08e8 input=a9049054013a1b77]*/
+/*[clinic end generated code: output=20c77328e33739fc input=a9049054013a1b77]*/

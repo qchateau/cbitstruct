@@ -8,7 +8,7 @@ import cbitstruct
 Error = TypeError
 
 
-class BitStructTest(unittest.TestCase):
+class BitstructTest(unittest.TestCase):
 
     def test_pack(self):
         """Pack values.
@@ -491,6 +491,11 @@ class BitStructTest(unittest.TestCase):
             # No exception should be raised for numbers in range.
             pack(fmt, minimum)
             pack(fmt, maximum)
+
+            # Numbers out of range.
+            for number in [minimum - 1, maximum + 1]:
+                with self.assertRaises(Error) as cm:
+                    pack(fmt, number)
 
     def test_pack_unpack_raw(self):
         """Pack and unpack raw values.

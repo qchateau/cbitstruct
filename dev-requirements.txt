@@ -1,2 +1,4 @@
 nose
 bitstruct
+wheel
+setuptools

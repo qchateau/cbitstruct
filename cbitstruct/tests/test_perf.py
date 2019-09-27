@@ -4,7 +4,6 @@ import bitstruct
 import timeit
 import unittest
 
-SETUP_SCRIPT = """
 import string
 import random
 import cbitstruct
@@ -25,7 +24,6 @@ cbs = cbitstruct.compile(fmt)
 
 dbs = bitstruct.compile(fmt, names)
 cdbs = cbitstruct.compile(fmt, names)
-"""
 
 NBS = 10000
 NCBS = 100000
@@ -33,8 +31,8 @@ NCBS = 100000
 
 class PerfTest(unittest.TestCase):
     def generic(self, name, bitstruct, cbitstruct):
-        bstime = timeit.timeit(bitstruct, setup=SETUP_SCRIPT, number=NBS) / NBS
-        cbstime = timeit.timeit(cbitstruct, setup=SETUP_SCRIPT, number=NCBS) / NCBS
+        bstime = timeit.timeit(bitstruct, number=NBS, globals=globals()) / NBS
+        cbstime = timeit.timeit(cbitstruct, number=NCBS, globals=globals()) / NCBS
         improvement = bstime / cbstime
 
         print(

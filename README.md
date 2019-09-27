@@ -10,7 +10,9 @@ Obvious increased performance comes with limitations described below.
 
 # Installation
 
-Coming soon
+```bash
+pip3 install cbitstruct
+```
 
 # Documentation
 
@@ -22,18 +24,14 @@ If you are not used to `bitstruct`, you should seriously consider using it first
 
 | Limitation | Will it be lifted ? |
 |------------|---------------------|
-| Only tested on linux | Probably |
 | All types except padding are limited to 64 bits | Maybe for 'raw' and 'text' types |
+| May not work on big-endian architectures | Maybe |
 | Exceptions differ from `bitstruct` | Probably not |
-| Python >= 3.4 | Probably not |
 | CPython only | Probably not |
-| May not work on big-endian architectures | Probably not |
-| Out-of-range numbers in packing operations are not detected | Probably not |
 | Error messages are unclear | Will never be as clear as `bitstruct` |
+| Python >= 3.5 | No |
 
 Some limitations are there because I did not get the time or motivation to lift them up. Some other are deeply rooted into this library and may never be lifted.
-
-Note that since this library is performance oriented, I will refuse changes that degrade performance (except bugfixes).
 
 # Performance
 
@@ -43,25 +41,25 @@ The script available in `tests/test_perf.py` measures performance comparing to t
 
 Here are the result "on my machine" (Ubuntu in Virtualbox on a laptop):
 ```
-byteswap list of int      | x  7.774 (   8.634us ->   1.111us)
-byteswap str              | x  8.828 (  12.992us ->   1.472us)
-calcsize                  | x150.863 (  60.566us ->   0.401us)
-compiled pack             | x 46.257 (  35.994us ->   0.778us)
-compiled pack_dict        | x 26.440 (  34.221us ->   1.294us)
-compiled pack_into        | x 35.690 (  39.932us ->   1.119us)
-compiled pack_into_dict   | x 25.579 (  38.404us ->   1.501us)
-compiled unpack           | x 35.285 (  32.051us ->   0.908us)
-compiled unpack_dict      | x 21.984 (  32.342us ->   1.471us)
-compiled unpack_from      | x 32.752 (  31.353us ->   0.957us)
-compiled unpack_from_dict | x 21.354 (  32.016us ->   1.499us)
-pack                      | x 84.085 ( 103.511us ->   1.231us)
-pack_dict                 | x 47.052 (  92.523us ->   1.966us)
-pack_into                 | x 76.317 ( 105.994us ->   1.389us)
-pack_into_dict            | x 41.617 (  96.210us ->   2.312us)
-unpack                    | x 85.326 (  94.035us ->   1.102us)
-unpack_dict               | x 41.138 (  90.074us ->   2.190us)
-unpack_from               | x 82.550 (  94.934us ->   1.150us)
-unpack_from_dict          | x 40.659 (  89.523us ->   2.202us)
+byteswap list of int      | x  8.204 (   9.208us ->   1.122us)
+byteswap str              | x  6.433 (   9.689us ->   1.506us)
+calcsize                  | x149.423 (  61.967us ->   0.415us)
+compiled pack             | x 43.227 (  34.758us ->   0.804us)
+compiled pack_dict        | x 26.490 (  34.951us ->   1.319us)
+compiled pack_into        | x 32.017 (  39.522us ->   1.234us)
+compiled pack_into_dict   | x 26.817 (  38.984us ->   1.454us)
+compiled unpack           | x 34.454 (  31.814us ->   0.923us)
+compiled unpack_dict      | x 23.534 (  34.071us ->   1.448us)
+compiled unpack_from      | x 27.170 (  31.884us ->   1.174us)
+compiled unpack_from_dict | x 22.600 (  33.927us ->   1.501us)
+pack                      | x 78.314 ( 105.593us ->   1.348us)
+pack_dict                 | x 52.916 ( 106.748us ->   2.017us)
+pack_into                 | x 82.233 ( 119.950us ->   1.459us)
+pack_into_dict            | x 45.214 ( 111.338us ->   2.462us)
+unpack                    | x 82.712 (  93.686us ->   1.133us)
+unpack_dict               | x 41.064 (  91.473us ->   2.228us)
+unpack_from               | x 81.678 (  95.729us ->   1.172us)
+unpack_from_dict          | x 40.379 (  90.430us ->   2.240us)
 ```
 
 *Disclaimer:* these results may and will vary largely depending on the number of elements and types you pack/unpack. This script is provided as-is, and I will gladly accept an improved script providing more reliable results.

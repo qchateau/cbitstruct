@@ -1,5 +1,6 @@
 #include <limits.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 
 #define PY_SSIZE_T_CLEAN
@@ -428,13 +429,34 @@ static void c_unpack(
 
 /* Python conversions */
 
+static bool unsigned_in_range(uint64_t n, int bits)
+{
+    if (bits == 64) {
+        return true;
+    }
+    return n < (1ull << bits);
+}
+
+static bool signed_in_range(int64_t n, int bits)
+{
+    if (bits == 64) {
+        return true;
+    }
+    if (n > 0) {
+        return n < (1ll << (bits - 1));
+    }
+    else {
+        return -n <= (1ll << (bits - 1));
+    }
+}
+
 static bool python_to_parsed_elements(
     ParsedElement* elements,
-    PyObject* tuple,
+    PyObject** data,
+    Py_ssize_t data_size,
     CompiledFormat fmt)
 {
-    assert(PyTuple_Check(tuple));
-    assert(PyTuple_GET_SIZE(tuple) >= fmt.ndescs);
+    assert(data_size >= fmt.ndescs);
 
     int n = 0;
     for (int i = 0; i < fmt.ndescs; ++i) {
@@ -447,7 +469,7 @@ static bool python_to_parsed_elements(
             continue;
         }
 
-        PyObject* v = PyTuple_GET_ITEM(tuple, n++);
+        PyObject* v = data[n++];
 
         switch (desc->type) {
         case 'u':
@@ -456,6 +478,9 @@ static bool python_to_parsed_elements(
 #else
             el->uint64 = PyLong_AsUnsignedLongLong(v);
 #endif // SIZEOF_LONG >= 8
+            if (!unsigned_in_range(el->uint64, desc->bits)) {
+                PyErr_SetString(PyExc_TypeError, "integer is out of range");
+            }
             break;
         case 's':
 #if SIZEOF_LONG >= 8
@@ -463,6 +488,9 @@ static bool python_to_parsed_elements(
 #else
             el->int64 = PyLong_AsLongLong(v);
 #endif // SIZEOF_LONG >= 8
+            if (!signed_in_range(el->int64, desc->bits)) {
+                PyErr_SetString(PyExc_TypeError, "integer is out of range");
+            }
             break;
         case 'f':
 #if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 6
@@ -591,6 +619,168 @@ static PyObject* parsed_elements_to_python(ParsedElement* elements, CompiledForm
     return result;
 }
 
+// Modified version of PyArg_ParseTupleAndKeywords
+// to parse 'n' arguments from args or kwargs and return
+// the number of arguments parsed from 'args'
+static Py_ssize_t PyArg_ParseTupleAndKeywordsFirstN(
+    PyObject* args,
+    PyObject* kwargs,
+    const char* format,
+    char* keywords[],
+    int n,
+    ...)
+{
+    va_list varargs;
+    va_start(varargs, n);
+
+    Py_ssize_t nkwargs = kwargs ? PyObject_Length(kwargs) : 0;
+    Py_ssize_t n_actual_args = n - nkwargs;
+
+    PyObject* actual_args = PyTuple_GetSlice(args, 0, n_actual_args);
+    if (!actual_args) {
+        PyErr_NoMemory();
+        goto exit;
+    }
+
+    if (PyArg_VaParseTupleAndKeywords(
+            actual_args, kwargs, format, keywords, varargs)) {
+    }
+    Py_DECREF(actual_args);
+
+exit:
+    va_end(varargs);
+    return n_actual_args;
+}
+
+static bool PopFillPadding(PyObject* kwargs)
+{
+    // get the fill_padding value and remove
+    // it from kwargs as it makes parsing painful
+    bool fill_padding = true;
+    if (kwargs) {
+        PyObject* py_fill_padding = PyDict_GetItemString(kwargs, FILL_PADDING);
+        if (py_fill_padding) {
+            fill_padding = PyObject_IsTrue(py_fill_padding);
+            PyDict_DelItemString(kwargs, FILL_PADDING);
+        }
+    }
+    return fill_padding;
+}
+
+static PyObject* CompiledFormat_pack_raw(
+    CompiledFormat compiled_fmt,
+    PyObject** data,
+    Py_ssize_t n_data)
+{
+    assert(PyTuple_Check(args));
+
+    ParsedElement elements_stack[SMALL_FORMAT_OPTIMIZATION];
+    ParsedElement* elements = elements_stack;
+    bool use_stack = compiled_fmt.ndescs <= SMALL_FORMAT_OPTIMIZATION;
+    PyObject* bytes = NULL;
+
+    int expected_size = compiled_fmt.ndescs - compiled_fmt.npadding;
+    if (n_data < expected_size) {
+        PyErr_Format(
+            PyExc_TypeError,
+            "pack() expected %d arguments (got %ld)",
+            expected_size,
+            n_data);
+        return NULL;
+    }
+
+    if (!use_stack) {
+        elements = PyMem_RawMalloc(compiled_fmt.ndescs * sizeof(ParsedElement));
+        if (!elements) {
+            PyErr_NoMemory();
+            return NULL;
+        }
+    }
+
+    if (!python_to_parsed_elements(elements, data, n_data, compiled_fmt)) {
+        PyErr_SetString(PyExc_TypeError, "failed to parse arguments");
+        goto exit;
+    }
+
+    int nbytes = (compiled_fmt.nbits + 7) / 8;
+    bytes = PyBytes_FromStringAndSize(NULL, nbytes);
+    if (!bytes) {
+        PyErr_NoMemory();
+        goto exit;
+    }
+
+    PyBytes_AS_STRING(bytes)[nbytes - 1] = 0;
+    c_pack((uint8_t*)PyBytes_AS_STRING(bytes), elements, compiled_fmt, 0, true);
+
+exit:
+    if (!use_stack) {
+        PyMem_RawFree(elements);
+    }
+
+    return bytes;
+}
+
+static PyObject* CompiledFormat_pack_into_raw(
+    CompiledFormat compiled_fmt,
+    Py_buffer* buffer,
+    Py_ssize_t offset,
+    PyObject** data_args,
+    Py_ssize_t n_data_args,
+    bool fill_padding)
+{
+    ParsedElement elements_stack[SMALL_FORMAT_OPTIMIZATION];
+    ParsedElement* elements = elements_stack;
+    bool use_stack = compiled_fmt.ndescs <= SMALL_FORMAT_OPTIMIZATION;
+    PyObject* return_value = NULL;
+
+    int expected_size = compiled_fmt.ndescs - compiled_fmt.npadding;
+    if (n_data_args < expected_size) {
+        PyErr_Format(
+            PyExc_TypeError,
+            "expected %d data arguments (got %ld)",
+            expected_size,
+            n_data_args);
+        goto exit;
+    }
+
+    if (!PyBuffer_IsContiguous(buffer, 'C')) {
+        PyErr_Format(PyExc_TypeError, "required a contiguous buffer");
+        goto exit;
+    }
+
+    int nbytes = (compiled_fmt.nbits + 7) / 8;
+    if (buffer->len < nbytes) {
+        PyErr_Format(
+            PyExc_TypeError, "required a buffer of at least %d bytes", nbytes);
+        goto exit;
+    }
+
+    if (!use_stack) {
+        elements = PyMem_RawMalloc(compiled_fmt.ndescs * sizeof(ParsedElement));
+        if (!elements) {
+            PyErr_NoMemory();
+            goto exit;
+        }
+    }
+
+    if (!python_to_parsed_elements(elements, data_args, n_data_args, compiled_fmt)) {
+        // python_to_parsed_elements should set the exception
+        goto exit;
+    }
+
+    c_pack((uint8_t*)buffer->buf, elements, compiled_fmt, offset, fill_padding);
+
+    return_value = Py_None;
+    Py_INCREF(Py_None);
+
+exit:
+    if (!use_stack && elements) {
+        PyMem_RawFree(elements);
+    }
+
+    return return_value;
+}
+
 /* Python methods */
 
 // clang-format off
@@ -600,10 +790,12 @@ class CompiledFormat "PyCompiledFormatObject *" "&PyStructType"
 /*[clinic end generated code: output=da39a3ee5e6b4b0d input=470ab77e2b50e7be]*/
 // clang-format on
 
+// clang-format off
 typedef struct {
-    PyObject_HEAD;
+    PyObject_HEAD
     CompiledFormat compiled_fmt;
 } PyCompiledFormatObject;
+// clang-format on
 
 // clang-format off
 /*[clinic input]
@@ -695,54 +887,9 @@ PyDoc_STRVAR(CompiledFormat_pack__doc__,
 // clang-format on
 static PyObject* CompiledFormat_pack(PyCompiledFormatObject* self, PyObject* args)
 {
-    assert(PyTuple_Check(args));
-
-    ParsedElement elements_stack[SMALL_FORMAT_OPTIMIZATION];
-    ParsedElement* elements = elements_stack;
-    bool use_stack = self->compiled_fmt.ndescs <= SMALL_FORMAT_OPTIMIZATION;
-    PyObject* bytes = NULL;
-
-    int expected_size = self->compiled_fmt.ndescs - self->compiled_fmt.npadding;
-    Py_ssize_t nargs = PyTuple_GET_SIZE(args);
-    if (nargs < expected_size) {
-        PyErr_Format(
-            PyExc_TypeError,
-            "pack expected %d arguments (got %ld)",
-            expected_size,
-            nargs);
-        return NULL;
-    }
-
-    if (!use_stack) {
-        elements = PyMem_RawMalloc(
-            self->compiled_fmt.ndescs * sizeof(ParsedElement));
-        if (!elements) {
-            PyErr_NoMemory();
-            return NULL;
-        }
-    }
-
-    if (!python_to_parsed_elements(elements, args, self->compiled_fmt)) {
-        PyErr_SetString(PyExc_TypeError, "failed to parse arguments");
-        goto exit;
-    }
-
-    int nbytes = (self->compiled_fmt.nbits + 7) / 8;
-    bytes = PyBytes_FromStringAndSize(NULL, nbytes);
-    if (!bytes) {
-        PyErr_NoMemory();
-        goto exit;
-    }
-
-    PyBytes_AS_STRING(bytes)[nbytes - 1] = 0;
-    c_pack((uint8_t*)PyBytes_AS_STRING(bytes), elements, self->compiled_fmt, 0, true);
-
-exit:
-    if (!use_stack) {
-        PyMem_RawFree(elements);
-    }
-
-    return bytes;
+    PyObject** data = PySequence_Fast_ITEMS(args);
+    Py_ssize_t n_data = PyTuple_GET_SIZE(args);
+    return CompiledFormat_pack_raw(self->compiled_fmt, data, n_data);
 }
 
 // clang-format off
@@ -759,93 +906,34 @@ static PyObject* CompiledFormat_pack_into(
     PyObject* args,
     PyObject* kwargs)
 {
-    assert(PyTuple_Check(args));
-    assert(PyDict_Check(kwargs));
-
-    ParsedElement elements_stack[SMALL_FORMAT_OPTIMIZATION];
-    ParsedElement* elements = elements_stack;
-    bool use_stack = self->compiled_fmt.ndescs <= SMALL_FORMAT_OPTIMIZATION;
     PyObject* return_value = NULL;
 
-    // +2 are target buffer, offset
-    int expected_size = 2 + self->compiled_fmt.ndescs
-                        - self->compiled_fmt.npadding;
-    Py_ssize_t nargs = PyTuple_GET_SIZE(args);
-    if (nargs < expected_size) {
-        PyErr_Format(
-            PyExc_TypeError,
-            "pack_into expected %d arguments (got %ld)",
-            expected_size,
-            nargs);
-        return NULL;
-    }
+    bool fill_padding = PopFillPadding(kwargs);
 
-    PyObject* data_args = NULL;
     Py_buffer buffer = {NULL, NULL};
-    int nbytes = (self->compiled_fmt.nbits + 7) / 8;
+    Py_ssize_t offset = 0;
 
-    if (PyObject_GetBuffer(PyTuple_GET_ITEM(args, 0), &buffer, PyBUF_SIMPLE)) {
-        // PyObject_GetBuffer must set the exception
-        goto exit;
-    }
-    if (!PyBuffer_IsContiguous(&buffer, 'C')) {
-        PyErr_Format(PyExc_TypeError, "pack_into expects a contiguous buffer");
-        goto exit;
-    }
-    if (buffer.len < nbytes) {
-        PyErr_Format(
-            PyExc_TypeError,
-            "pack_into requires a buffer of at least %d bytes",
-            nbytes);
-        goto exit;
-    }
+    static char* _keywords[] = {"buf", "offset", NULL};
+    // custom (and vague) error message as all other 'pack_into'
+    // versions are processed by this function. Using the default
+    // error message would give bad information to the user
+    Py_ssize_t n_args_parsed = PyArg_ParseTupleAndKeywordsFirstN(
+        args, kwargs, "y*n:pack_into", _keywords, 2, &buffer, &offset);
 
-    long offset = PyLong_AsLong(PyTuple_GET_ITEM(args, 1));
-    if (offset < 0 && PyErr_Occurred()) {
-        goto exit;
-    }
+    Py_ssize_t n_args = PyTuple_GET_SIZE(args);
+    PyObject** data = PySequence_Fast_ITEMS(args);
 
-    bool fill_padding = true;
-    if (kwargs) {
-        PyObject* py_fill_padding = PyDict_GetItemString(kwargs, FILL_PADDING);
-        fill_padding = !py_fill_padding || PyObject_IsTrue(py_fill_padding);
-    }
+    return_value = CompiledFormat_pack_into_raw(
+        self->compiled_fmt,
+        &buffer,
+        offset,
+        data + n_args_parsed,
+        n_args - n_args_parsed,
+        fill_padding);
 
-    if (!use_stack) {
-        elements = PyMem_RawMalloc(
-            self->compiled_fmt.ndescs * sizeof(ParsedElement));
-        if (!elements) {
-            PyErr_NoMemory();
-            goto exit;
-        }
-    }
-
-    data_args = PyTuple_GetSlice(args, 2, nargs);
-    if (!data_args) {
-        PyErr_NoMemory();
-        goto exit;
-    }
-    if (!python_to_parsed_elements(elements, data_args, self->compiled_fmt)) {
-        // python_to_parsed_elements should set the exception
-        goto exit;
-    }
-
-    c_pack((uint8_t*)buffer.buf, elements, self->compiled_fmt, offset, fill_padding);
-
-    return_value = Py_None;
-    Py_INCREF(Py_None);
-
-exit:
-    if (data_args) {
-        Py_DECREF(data_args);
-    }
-    if (!use_stack && elements) {
-        PyMem_RawFree(elements);
-    }
     if (buffer.obj) {
         PyBuffer_Release(&buffer);
     }
-
     return return_value;
 }
 
@@ -887,7 +975,7 @@ CompiledFormat_unpack_from_impl(PyCompiledFormatObject *self,
     bool use_stack = self->compiled_fmt.ndescs <= SMALL_FORMAT_OPTIMIZATION;
 
     if (!PyBuffer_IsContiguous(data, 'C')) {
-        PyErr_Format(PyExc_TypeError, "unpack expects a contiguous buffer");
+        PyErr_Format(PyExc_TypeError, "unpack() expects a contiguous buffer");
         return NULL;
     }
 
@@ -895,7 +983,7 @@ CompiledFormat_unpack_from_impl(PyCompiledFormatObject *self,
     if (data->len < nbytes) {
         PyErr_Format(
             PyExc_TypeError,
-            "unpack requires a buffer of at least %d bytes",
+            "unpack() requires a buffer of at least %d bytes",
             nbytes);
         return NULL;
     }
@@ -1055,58 +1143,56 @@ exit:
 }
 
 // clang-format off
-PyDoc_STRVAR(CompiledFormatDict_pack_into__doc__,
-"pack_into($self, buf, offset, data, **kwargs)\n"
-"--\n"
-"\n"
-"Pack data into a bytes object, starting at bit offset given by the\n"
-"offset argument. An optional 'fill_padding=False' argument can be given\n"
-"to keep padding bits from 'buf' as-is.");
+/*[clinic input]
+CompiledFormatDict.pack_into
+
+    buf: Py_buffer
+    offset: Py_ssize_t
+    data: object
+    *
+    fill_padding: bool = True
+
+Pack data into a bytes object, starting at bit offset given by the offset argument.
+
+With fill_padding=False, passing bits in 'buf' will not be modified.
+[clinic start generated code]*/
+
+static PyObject *
+CompiledFormatDict_pack_into_impl(PyCompiledFormatDictObject *self,
+                                  Py_buffer *buf, Py_ssize_t offset,
+                                  PyObject *data, int fill_padding)
+/*[clinic end generated code: output=ee246de261e9c699 input=290a9a4a3e3ed942]*/
 // clang-format on
-static PyObject* CompiledFormatDict_pack_into(
-    PyCompiledFormatDictObject* self,
-    PyObject* args,
-    PyObject* kwargs)
 {
     assert(PyTuple_Check(args));
 
     PyObject* return_value = NULL;
-    PyObject* extended_args = NULL;
-
-    Py_ssize_t nargs = PyTuple_GET_SIZE(args);
-    if (nargs != 3) {
-        PyErr_SetString(PyExc_TypeError, "pack_into takes three arguments");
-        goto exit;
-    }
 
     Py_ssize_t nnames = PySequence_Fast_GET_SIZE(self->names);
     PyObject** names = PySequence_Fast_ITEMS(self->names);
 
-    extended_args = PyTuple_GetSlice(args, 0, 2);
-    if (!extended_args) {
+    PyObject* data_tuple = PyTuple_New(nnames);
+    if (!data_tuple) {
         PyErr_NoMemory();
-        goto exit;
-    }
-    if (_PyTuple_Resize(&extended_args, 2 + nnames)) {
-        // _PyTuple_Resize sets an exception
         goto exit;
     }
 
     for (int i = 0; i < nnames; ++i) {
-        PyObject* v = PyObject_GetItem(PyTuple_GET_ITEM(args, 2), names[i]);
+        PyObject* v = PyObject_GetItem(data, names[i]);
         if (!v) {
             // PyObject_GetItem sets KeyError
             goto exit;
         }
-        PyTuple_SET_ITEM(extended_args, 2 + i, v);
+        PyTuple_SET_ITEM(data_tuple, i, v);
     }
 
-    return_value = CompiledFormat_pack_into(
-        (PyCompiledFormatObject*)self, extended_args, kwargs);
+    PyObject** data_array = PySequence_Fast_ITEMS(data_tuple);
+    return_value = CompiledFormat_pack_into_raw(
+        self->super.compiled_fmt, buf, offset, data_array, nnames, fill_padding);
 
 exit:
-    if (extended_args) {
-        Py_DECREF(extended_args);
+    if (data_tuple) {
+        Py_DECREF(data_tuple);
     }
 
     return return_value;
@@ -1208,12 +1294,7 @@ static struct PyMethodDef CompiledFormatDict_methods[] = {
     COMPILEDFORMATDICT_PACK_METHODDEF
     COMPILEDFORMATDICT_UNPACK_METHODDEF
     COMPILEDFORMATDICT_UNPACK_FROM_METHODDEF
-    {
-        "pack_into",
-        (PyCFunction)CompiledFormatDict_pack_into,
-        METH_VARARGS|METH_KEYWORDS,
-        CompiledFormatDict_pack_into__doc__
-    },
+    COMPILEDFORMATDICT_PACK_INTO_METHODDEF
     {NULL, NULL}
 };
 
@@ -1240,36 +1321,27 @@ PyDoc_STRVAR(pack__doc__,
 "\n"
 "Pack args into a bytes object according to fmt");
 // clang-format on
-static PyObject* pack(PyObject* module, PyObject* args)
+static PyObject* pack(PyObject* module, PyObject* args, PyObject* kwargs)
 {
-    assert(PyTuple_Check(args));
-
-    Py_ssize_t nargs = PyTuple_GET_SIZE(args);
-    if (nargs < 1) {
-        PyErr_SetString(PyExc_TypeError, "pack expects at least one argument");
-        return NULL;
-    }
-
     PyObject* return_value = NULL;
-    PyCompiledFormatObject self;
+    const char* fmt = NULL;
 
-    const char* fmt = PyUnicode_AsUTF8(PyTuple_GET_ITEM(args, 0));
-    if (!fmt) {
-        // PyUnicode_AsUTF8 has set the exception
-        goto exit;
-    }
+    static char* _keywords[] = {"fmt", NULL};
+    Py_ssize_t n_args_parsed = PyArg_ParseTupleAndKeywordsFirstN(
+        args, kwargs, "s:pack", _keywords, 1, &fmt);
+
+    PyCompiledFormatObject self;
+    memset(&self, 0, sizeof(self));
+
     if (CompiledFormat___init___impl(&self, fmt)) {
         // CompiledFormat___init___impl has set the exception
         goto exit;
     }
 
-    PyObject* obj_args = PyTuple_GetSlice(args, 1, nargs);
-    if (!obj_args) {
-        PyErr_NoMemory();
-        goto exit;
-    }
-    return_value = CompiledFormat_pack(&self, obj_args);
-    Py_DECREF(obj_args);
+    Py_ssize_t n_args = PyTuple_GET_SIZE(args);
+    PyObject** data = PySequence_Fast_ITEMS(args);
+    return_value = CompiledFormat_pack_raw(
+        self.compiled_fmt, data + n_args_parsed, n_args - n_args_parsed);
 
 exit:
     CompiledFormat_deinit(&self);
@@ -1287,34 +1359,34 @@ PyDoc_STRVAR(pack_into__doc__,
 // clang-format on
 static PyObject* pack_into(PyObject* module, PyObject* args, PyObject* kwargs)
 {
-    assert(PyTuple_Check(args));
-
-    Py_ssize_t nargs = PyTuple_GET_SIZE(args);
-    if (nargs < 1) {
-        PyErr_SetString(
-            PyExc_TypeError, "pack_into expects at least one argument");
-        return NULL;
-    }
-
     PyObject* return_value = NULL;
+    Py_buffer buffer = {NULL, NULL};
+    Py_ssize_t offset = 0;
+    const char* fmt = NULL;
+
+    bool fill_padding = PopFillPadding(kwargs);
+
+    static char* _keywords[] = {"fmt", "buf", "offset", NULL};
+    Py_ssize_t n_args_parsed = PyArg_ParseTupleAndKeywordsFirstN(
+        args, kwargs, "sy*n:pack_into", _keywords, 3, &fmt, &buffer, &offset);
+
     PyCompiledFormatObject self;
-    const char* fmt = PyUnicode_AsUTF8(PyTuple_GET_ITEM(args, 0));
-    if (!fmt) {
-        // PyUnicode_AsUTF8 has set the exception
-        goto exit;
-    }
+    memset(&self, 0, sizeof(self));
+
     if (CompiledFormat___init___impl(&self, fmt)) {
         // CompiledFormat___init___impl has set the exception
         goto exit;
     }
 
-    PyObject* obj_args = PyTuple_GetSlice(args, 1, nargs);
-    if (!obj_args) {
-        PyErr_NoMemory();
-        goto exit;
-    }
-    return_value = CompiledFormat_pack_into(&self, obj_args, kwargs);
-    Py_DECREF(obj_args);
+    Py_ssize_t n_args = PyTuple_GET_SIZE(args);
+    PyObject** data = PySequence_Fast_ITEMS(args);
+    return_value = CompiledFormat_pack_into_raw(
+        self.compiled_fmt,
+        &buffer,
+        offset,
+        data + n_args_parsed,
+        n_args - n_args_parsed,
+        fill_padding);
 
 exit:
     CompiledFormat_deinit(&self);
@@ -1343,6 +1415,7 @@ pack_dict_impl(PyObject *module, const char *fmt, PyObject *names,
 {
     PyObject* return_value = NULL;
     PyCompiledFormatDictObject self;
+    memset(&self, 0, sizeof(self));
 
     if (CompiledFormatDict___init___impl(&self, fmt, names)) {
         // CompiledFormatDict___init___impl has set the exception
@@ -1356,52 +1429,45 @@ exit:
 }
 
 // clang-format off
-PyDoc_STRVAR(pack_into_dict__doc__,
-"pack_into_dict(fmt, names, buf, offset, data, **kwargs)\n"
-"--\n"
-"\n"
-"Pack data into a bytes object, starting at bit offset given by the\n"
-"offset argument. Values are taken from the dict 'data' in the order\n"
-"given by the list 'names'. An optional 'fill_padding=False' argument\n"
-"can be given to keep padding bits from 'buf' as-is.");
+/*[clinic input]
+pack_into_dict
+
+    fmt: str
+    names: object
+    buf: Py_buffer
+    offset: Py_ssize_t
+    data: object
+    *
+    fill_padding: bool = True
+
+Pack data into a bytes object, starting at bit offset given by the offset argument.
+
+With fill_padding=False, passing bits in 'buf' will not be modified.
+[clinic start generated code]*/
+
+static PyObject *
+pack_into_dict_impl(PyObject *module, const char *fmt, PyObject *names,
+                    Py_buffer *buf, Py_ssize_t offset, PyObject *data,
+                    int fill_padding)
+/*[clinic end generated code: output=619b415fc187011b input=e72dec46484ec66f]*/
 // clang-format on
-static PyObject* pack_into_dict(PyObject* module, PyObject* args, PyObject* kwargs)
 {
     assert(PyTuple_Check(args));
 
-    PyCompiledFormatDictObject self;
-    PyObject* cstor_args = NULL;
     PyObject* return_value = NULL;
-    Py_ssize_t nargs = PyTuple_GET_SIZE(args);
+    PyCompiledFormatDictObject self;
+    memset(&self, 0, sizeof(self));
 
-    if (nargs != 5) {
-        PyErr_SetString(PyExc_TypeError, "pack_into_dict takes 5 arguments");
-        goto exit;
-    }
-
-    cstor_args = PyTuple_GetSlice(args, 0, 2);
-    if (!cstor_args) {
-        PyErr_NoMemory();
-        goto exit;
-    }
-    if (CompiledFormatDict___init__((PyObject*)&self, cstor_args, NULL)) {
-        // CompiledFormatDict___init__ has set the exception
+    if (CompiledFormatDict___init___impl(&self, fmt, names)) {
+        // CompiledFormatDict___init___impl has set the exception
         goto exit;
     }
 
-    PyObject* obj_args = PyTuple_GetSlice(args, 2, nargs);
-    if (!obj_args) {
-        PyErr_NoMemory();
-        goto exit;
-    }
-    return_value = CompiledFormatDict_pack_into(&self, obj_args, kwargs);
-    Py_DECREF(obj_args);
+    return_value =
+        CompiledFormatDict_pack_into_impl(&self, buf, offset, data, fill_padding);
 
 exit:
     CompiledFormatDict_deinit(&self);
-    if (cstor_args) {
-        Py_DECREF(cstor_args);
-    }
     return return_value;
 }
 
@@ -1446,6 +1512,7 @@ unpack_from_impl(PyObject *module, const char *fmt, Py_buffer *data,
 {
     PyObject* return_value = NULL;
     PyCompiledFormatObject self;
+    memset(&self, 0, sizeof(self));
 
     if (CompiledFormat___init___impl(&self, fmt)) {
         // CompiledFormat___init___impl has set the exception
@@ -1502,6 +1569,7 @@ unpack_from_dict_impl(PyObject *module, const char *fmt, PyObject *names,
 {
     PyObject* return_value = NULL;
     PyCompiledFormatDictObject self;
+    memset(&self, 0, sizeof(self));
 
     if (CompiledFormatDict___init___impl(&self, fmt, names)) {
         // CompiledFormatDict___init___impl has set the exception
@@ -1559,6 +1627,7 @@ calcsize_impl(PyObject *module, const char *fmt)
 {
     Py_ssize_t return_value = -1;
     PyCompiledFormatObject self;
+    memset(&self, 0, sizeof(self));
 
     if (CompiledFormat___init___impl(&self, fmt)) {
         // CompiledFormat___init___impl has set the exception
@@ -1599,7 +1668,7 @@ byteswap_impl(PyObject *module, PyObject *fmt, Py_buffer *data,
     Py_ssize_t length = -1;
 
     if (!PyBuffer_IsContiguous(data, 'C')) {
-        PyErr_Format(PyExc_TypeError, "byteswap expects a contiguous buffer");
+        PyErr_Format(PyExc_TypeError, "byteswap() expects a contiguous buffer");
         goto exit;
     }
 
@@ -1608,8 +1677,8 @@ byteswap_impl(PyObject *module, PyObject *fmt, Py_buffer *data,
         goto exit;
     }
 
-    return_value =
-        PyBytes_FromStringAndSize(data->buf + offset, data->len - offset);
+    return_value = PyBytes_FromStringAndSize(
+        ((const char*)data->buf) + offset, data->len - offset);
     if (!return_value) {
         PyErr_NoMemory();
         goto exit;
@@ -1649,7 +1718,7 @@ byteswap_impl(PyObject *module, PyObject *fmt, Py_buffer *data,
     if (sum > PyBytes_Size(return_value)) {
         PyErr_Format(
             PyExc_TypeError,
-            "byteswap requires a buffer of at least %d bytes",
+            "byteswap() requires a buffer of at least %d bytes",
             sum);
         goto exit;
     }
@@ -1674,7 +1743,7 @@ static struct PyMethodDef py_module_functions[] = {
     {
         "pack",
         (PyCFunction)pack,
-        METH_VARARGS,
+        METH_VARARGS|METH_KEYWORDS,
         pack__doc__
     },
     {
@@ -1684,12 +1753,7 @@ static struct PyMethodDef py_module_functions[] = {
         pack_into__doc__
     },
     PACK_DICT_METHODDEF
-    {
-        "pack_into_dict",
-        (PyCFunction)pack_into_dict,
-        METH_VARARGS|METH_KEYWORDS,
-        pack_into_dict__doc__
-    },
+    PACK_INTO_DICT_METHODDEF
     UNPACK_METHODDEF
     UNPACK_FROM_METHODDEF
     UNPACK_DICT_METHODDEF
