@@ -2,7 +2,7 @@
 
 # About
 
-`cbitstruct` is a C implementation of the `bitstruct` library. Credits to Erik Movist for the original `bitstruct` library available on [Github](https://github.com/eerimoq/bitstruct) and [pip](https://pypi.org/project/bitstruct/).
+`cbitstruct` is a C implementation of the `bitstruct` library. Credits to Erik Moqvist for the original `bitstruct` library available on [Github](https://github.com/eerimoq/bitstruct) and [pip](https://pypi.org/project/bitstruct/).
 
 The goal is to provide the same API an idealy to be able to interchange `import bitstruct` and `import cbitstruct as bitstruct`.
 
