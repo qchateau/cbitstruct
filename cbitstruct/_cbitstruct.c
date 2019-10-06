@@ -605,10 +605,7 @@ static PyObject* parsed_elements_to_python(ParsedElement* elements, CompiledForm
         };
 
         if (!v) {
-            if (!PyErr_Occurred()) {
-                // Set our own exception
-                PyErr_SetString(PyExc_TypeError, "to-python conversion error");
-            }
+            // An exception has been set
             Py_DECREF(result);
             return NULL;
         }
@@ -650,9 +647,9 @@ static Py_ssize_t PyArg_ParseTupleAndKeywordsFirstN(
 
     if (PyArg_VaParseTupleAndKeywords(
             actual_args, kwargs, format, keywords, varargs)) {
+        return_value = n_actual_args;
     }
     Py_DECREF(actual_args);
-    return_value = n_actual_args;
 
 exit:
     va_end(varargs);
@@ -1689,13 +1686,6 @@ byteswap_impl(PyObject *module, PyObject *fmt, Py_buffer *data,
         goto exit;
     }
 
-    return_value = PyBytes_FromStringAndSize(
-        ((const char*)data->buf) + offset, data->len - offset);
-    if (!return_value) {
-        PyErr_NoMemory();
-        goto exit;
-    }
-
     count_iter = PyMem_RawMalloc(length * sizeof(int));
     if (!count_iter) {
         PyErr_NoMemory();
@@ -1727,7 +1717,7 @@ byteswap_impl(PyObject *module, PyObject *fmt, Py_buffer *data,
         }
     }
 
-    if (sum > PyBytes_Size(return_value)) {
+    if (sum > data->len) {
         PyErr_Format(
             PyExc_TypeError,
             "byteswap() requires a buffer of at least %d bytes",
@@ -1735,11 +1725,18 @@ byteswap_impl(PyObject *module, PyObject *fmt, Py_buffer *data,
         goto exit;
     }
 
-    uint8_t* buf = (uint8_t*)PyBytes_AS_STRING(return_value);
+    uint8_t* buf = (uint8_t*)data->buf + offset;
     for (int i = 0; i < length; ++i) {
         int nbytes = count_iter[i];
         c_byteswitch(buf, nbytes);
         buf += nbytes;
+    }
+
+    return_value = PyBytes_FromStringAndSize(
+        ((const char*)data->buf) + offset, data->len - offset);
+    if (!return_value) {
+        PyErr_NoMemory();
+        goto exit;
     }
 
 exit:
