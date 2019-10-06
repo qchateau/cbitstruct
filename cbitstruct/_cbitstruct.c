@@ -633,8 +633,14 @@ static Py_ssize_t PyArg_ParseTupleAndKeywordsFirstN(
     va_list varargs;
     va_start(varargs, n);
 
+    Py_ssize_t return_value = -1;
     Py_ssize_t nkwargs = kwargs ? PyObject_Length(kwargs) : 0;
     Py_ssize_t n_actual_args = n - nkwargs;
+
+    if (PyTuple_GET_SIZE(args) < n_actual_args) {
+        PyErr_SetString(PyExc_TypeError, "Not enough arguments");
+        goto exit;
+    }
 
     PyObject* actual_args = PyTuple_GetSlice(args, 0, n_actual_args);
     if (!actual_args) {
@@ -646,10 +652,11 @@ static Py_ssize_t PyArg_ParseTupleAndKeywordsFirstN(
             actual_args, kwargs, format, keywords, varargs)) {
     }
     Py_DECREF(actual_args);
+    return_value = n_actual_args;
 
 exit:
     va_end(varargs);
-    return n_actual_args;
+    return return_value;
 }
 
 static bool PopFillPadding(PyObject* kwargs)
@@ -907,11 +914,12 @@ static PyObject* CompiledFormat_pack_into(
     PyObject* kwargs)
 {
     PyObject* return_value = NULL;
-
-    bool fill_padding = PopFillPadding(kwargs);
-
     Py_buffer buffer = {NULL, NULL};
     Py_ssize_t offset = 0;
+
+    bool fill_padding = PopFillPadding(kwargs);
+    Py_ssize_t n_args = PyTuple_GET_SIZE(args);
+    PyObject** data = PySequence_Fast_ITEMS(args);
 
     static char* _keywords[] = {"buf", "offset", NULL};
     // custom (and vague) error message as all other 'pack_into'
@@ -919,9 +927,9 @@ static PyObject* CompiledFormat_pack_into(
     // error message would give bad information to the user
     Py_ssize_t n_args_parsed = PyArg_ParseTupleAndKeywordsFirstN(
         args, kwargs, "y*n:pack_into", _keywords, 2, &buffer, &offset);
-
-    Py_ssize_t n_args = PyTuple_GET_SIZE(args);
-    PyObject** data = PySequence_Fast_ITEMS(args);
+    if (n_args_parsed < 0) {
+        goto exit;
+    }
 
     return_value = CompiledFormat_pack_into_raw(
         self->compiled_fmt,
@@ -931,6 +939,7 @@ static PyObject* CompiledFormat_pack_into(
         n_args - n_args_parsed,
         fill_padding);
 
+exit:
     if (buffer.obj) {
         PyBuffer_Release(&buffer);
     }
@@ -1325,13 +1334,15 @@ static PyObject* pack(PyObject* module, PyObject* args, PyObject* kwargs)
 {
     PyObject* return_value = NULL;
     const char* fmt = NULL;
+    PyCompiledFormatObject self;
+    memset(&self, 0, sizeof(self));
 
     static char* _keywords[] = {"fmt", NULL};
     Py_ssize_t n_args_parsed = PyArg_ParseTupleAndKeywordsFirstN(
         args, kwargs, "s:pack", _keywords, 1, &fmt);
-
-    PyCompiledFormatObject self;
-    memset(&self, 0, sizeof(self));
+    if (n_args_parsed < 0) {
+        goto exit;
+    }
 
     if (CompiledFormat___init___impl(&self, fmt)) {
         // CompiledFormat___init___impl has set the exception
@@ -1363,15 +1374,16 @@ static PyObject* pack_into(PyObject* module, PyObject* args, PyObject* kwargs)
     Py_buffer buffer = {NULL, NULL};
     Py_ssize_t offset = 0;
     const char* fmt = NULL;
-
+    PyCompiledFormatObject self;
+    memset(&self, 0, sizeof(self));
     bool fill_padding = PopFillPadding(kwargs);
 
     static char* _keywords[] = {"fmt", "buf", "offset", NULL};
     Py_ssize_t n_args_parsed = PyArg_ParseTupleAndKeywordsFirstN(
         args, kwargs, "sy*n:pack_into", _keywords, 3, &fmt, &buffer, &offset);
-
-    PyCompiledFormatObject self;
-    memset(&self, 0, sizeof(self));
+    if (n_args_parsed < 0) {
+        goto exit;
+    }
 
     if (CompiledFormat___init___impl(&self, fmt)) {
         // CompiledFormat___init___impl has set the exception

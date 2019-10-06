@@ -15,6 +15,30 @@ CFD = cbitstruct.CompiledFormatDict(FMT, NAMES)
 
 
 class BitstructApiTest(unittest.TestCase):
+    def test_no_args(self):
+        self.assertRaises(Exception, cbitstruct.byteswap)
+        self.assertRaises(Exception, cbitstruct.calcsize)
+        self.assertRaises(Exception, cbitstruct.pack)
+        self.assertRaises(Exception, cbitstruct.pack_into)
+        self.assertRaises(Exception, cbitstruct.pack_dict)
+        self.assertRaises(Exception, cbitstruct.pack_into_dict)
+        self.assertRaises(Exception, cbitstruct.unpack)
+        self.assertRaises(Exception, cbitstruct.unpack_from)
+        self.assertRaises(Exception, cbitstruct.unpack_dict)
+        self.assertRaises(Exception, cbitstruct.unpack_from_dict)
+        self.assertRaises(Exception, cbitstruct.CompiledFormat)
+        self.assertRaises(Exception, cbitstruct.CompiledFormatDict)
+        cf = cbitstruct.CompiledFormat(FMT)
+        self.assertRaises(Exception, cf.pack)
+        self.assertRaises(Exception, cf.pack_into)
+        self.assertRaises(Exception, cf.unpack)
+        self.assertRaises(Exception, cf.unpack_from)
+        cfd = cbitstruct.CompiledFormatDict(FMT, NAMES)
+        self.assertRaises(Exception, cf.pack)
+        self.assertRaises(Exception, cf.pack_into)
+        self.assertRaises(Exception, cf.unpack)
+        self.assertRaises(Exception, cf.unpack_from)
+
     def test_compiled_format(self):
         cbitstruct.CompiledFormat(fmt=FMT)
         cbitstruct.CompiledFormat(FMT)
