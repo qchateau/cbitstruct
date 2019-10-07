@@ -321,7 +321,7 @@ static void c_pack(
             int nbytes = (desc->bits + 7) / 8;
             int padding = nbytes * 8 - desc->bits;
 #if PY_LITTLE_ENDIAN
-            assert(nbytes <= sizeof(data));
+            assert(nbytes <= (int)sizeof(data));
             c_byteswitch((uint8_t*)&data, nbytes);
 #endif
             data >>= padding;
@@ -410,7 +410,7 @@ static void c_unpack(
             int padding = nbytes * 8 - desc->bits;
             data <<= padding;
 #if PY_LITTLE_ENDIAN
-            assert(nbytes <= sizeof(data));
+            assert(nbytes <= (int)sizeof(data));
             c_byteswitch((uint8_t*)&data, nbytes);
 #endif
         }
@@ -456,7 +456,7 @@ static bool python_to_parsed_elements(
     Py_ssize_t data_size,
     CompiledFormat fmt)
 {
-    assert(data_size >= fmt.ndescs);
+    assert(data_size >= fmt.ndescs - fmt.npadding);
 
     int n = 0;
     for (int i = 0; i < fmt.ndescs; ++i) {
@@ -676,8 +676,6 @@ static PyObject* CompiledFormat_pack_raw(
     PyObject** data,
     Py_ssize_t n_data)
 {
-    assert(PyTuple_Check(args));
-
     ParsedElement elements_stack[SMALL_FORMAT_OPTIMIZATION];
     ParsedElement* elements = elements_stack;
     bool use_stack = compiled_fmt.ndescs <= SMALL_FORMAT_OPTIMIZATION;
@@ -1170,8 +1168,6 @@ CompiledFormatDict_pack_into_impl(PyCompiledFormatDictObject *self,
 /*[clinic end generated code: output=ee246de261e9c699 input=290a9a4a3e3ed942]*/
 // clang-format on
 {
-    assert(PyTuple_Check(args));
-
     PyObject* return_value = NULL;
 
     Py_ssize_t nnames = PySequence_Fast_GET_SIZE(self->names);
@@ -1461,8 +1457,6 @@ pack_into_dict_impl(PyObject *module, const char *fmt, PyObject *names,
 /*[clinic end generated code: output=619b415fc187011b input=e72dec46484ec66f]*/
 // clang-format on
 {
-    assert(PyTuple_Check(args));
-
     PyObject* return_value = NULL;
     PyCompiledFormatDictObject self;
     memset(&self, 0, sizeof(self));
@@ -1692,28 +1686,38 @@ byteswap_impl(PyObject *module, PyObject *fmt, Py_buffer *data,
         goto exit;
     }
 
-    int sum = 0;
-    for (int i = 0; i < length; ++i) {
-        PyObject* item = PySequence_GetItem(fmt, i);
-        if (!item) {
+    long sum = 0;
+    if (PyUnicode_Check(fmt)) {
+        const char* cfmt = PyUnicode_AsUTF8(fmt);
+        if (!cfmt) {
             goto exit;
         }
 
-        long len = -1;
-        if (PyUnicode_Check(item)) {
-            PyObject* pylong = PyLong_FromUnicodeObject(item, 10);
-            len = PyLong_AsLong(pylong);
-            Py_DECREF(pylong);
+        for (int i = 0; i < length; ++i) {
+            int len = cfmt[i] - '0';
+            if (len < 0 || len > 9) {
+                PyErr_SetString(
+                    PyExc_ValueError, "bad value in byteswap format");
+                goto exit;
+            }
+            sum += len;
+            count_iter[i] = len;
         }
-        else {
-            len = PyLong_AsLong(item);
-        }
+    }
+    else {
+        for (int i = 0; i < length; ++i) {
+            PyObject* item = PySequence_GetItem(fmt, i);
+            if (!item) {
+                goto exit;
+            }
 
-        sum += len;
-        count_iter[i] = len;
-        Py_DECREF(item);
-        if (len < 0 || PyErr_Occurred()) {
-            goto exit;
+            long len = PyLong_AsLong(item);
+            sum += len;
+            count_iter[i] = len;
+            Py_DECREF(item);
+            if (len == -1 && PyErr_Occurred()) {
+                goto exit;
+            }
         }
     }
 

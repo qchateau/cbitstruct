@@ -6,17 +6,19 @@ from setuptools import setup, Extension
 
 extra_compile_args = []
 extra_link_args = []
+undef_macros = []
 
 
 if sys.platform == "win32":
     extra_compile_args += []
 else:
-    extra_compile_args += ["-std=c11", "-Wall", "-Werror"]
+    extra_compile_args += ["-std=c11", "-Wall", "-Werror", "-O3"]
 
 
 if os.environ.get("COVERAGE"):
     extra_compile_args += ["-g", "-O0", "-fprofile-arcs", "-ftest-coverage"]
     extra_link_args += ["-fprofile-arcs"]
+    undef_macros += ["NDEBUG"]
 
 
 with open("README.md", "r") as fh:
@@ -25,7 +27,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="cbitstruct",
-    version="1.0.2",
+    version="1.0.3",
     author="Quentin CHATEAU",
     author_email="quentin.chateau@gmail.com",
     license="GPLv3",
@@ -57,6 +59,7 @@ setup(
             extra_link_args=extra_link_args,
             sources=["cbitstruct/_cbitstruct.c"],
             include_dirs=["cbitstruct/"],
+            undef_macros=undef_macros,
         )
     ],
     packages=["cbitstruct", "cbitstruct.tests"],

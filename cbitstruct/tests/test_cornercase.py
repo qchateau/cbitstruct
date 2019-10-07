@@ -117,6 +117,7 @@ class BitstructApiTest(unittest.TestCase):
         self.assertRaises(TypeError, cbitstruct.byteswap, None, b"\xff")
         self.assertRaises(TypeError, cbitstruct.byteswap, "23")
         self.assertRaises(TypeError, cbitstruct.byteswap)
+        self.assertRaises(ValueError, cbitstruct.byteswap, "\x02\x02", b"z")
 
     def test_calcsize_bad_args(self):
         self.assertRaises(TypeError, cbitstruct.calcsize, "g32")
