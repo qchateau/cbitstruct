@@ -1,11 +1,10 @@
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
 #include <limits.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-
-#define PY_SSIZE_T_CLEAN
-
-#include <Python.h>
 
 #define BIT_MASK(__TYPE__, __ONE_COUNT__)  \
     (((__TYPE__)(-((__ONE_COUNT__) != 0))) \
