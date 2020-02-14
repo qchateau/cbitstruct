@@ -27,7 +27,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="cbitstruct",
-    version="1.0.4",
+    version="1.0.5",
     author="Quentin CHATEAU",
     author_email="quentin.chateau@gmail.com",
     license="GPLv3",
