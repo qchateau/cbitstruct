@@ -3,7 +3,7 @@ python: 3.7
 
 env:
   global:
-    - PY_VERSIONS="3.7.4 3.6.8 3.5.4"
+    - PY_VERSIONS="3.8.1 3.7.4 3.6.8 3.5.4"
     - PYPI_REPOSITORY_URL=https://upload.pypi.org/legacy/
     - PYPI_USERNAME=__token__
     - secure: "jfAnPdxjTDw/mFbM2rmqjHaBtGpA+Rr+goCB5/Jp6RZ5N2M60nJliw8B5v7RwZDy//nSIdbTBU7cF/7WjEPwzrHUn5LQsS13ThzoS6KE7NUPa77TOxEpHXr4MJsyeSQMindEbAMeYP+lffI8/ISQ85evIbbSn6XzZSN/YBpQCTUGHWViqKIlpT70GYfRTeEJ0YvXxcJHKXoMuG7N80n8DW88FlfuI2age29cAe80pNn2yCZww2ZH0kG62HGQhzVv4v/uvxLLTaDP/JndYQyBnw6y5gesT2XCrgmCPgCTyVrtJsR96LjOukG2/T5etgpK0sgRwfgRk2DjKmlUqQOUm57lO+52ECaqqbaERFYe/Ub4JZ4DD05lKqm6wtQMD+fYl+TLKzGvCWayuLvxs7HqI+cz0BQQ7iynXuPUqX3xpkUDdAUzg9remmEJ1n8WG/NMHsv3Embh6zHS9RW7OUBXTELjrgJHVwjm8N0KtY063kMDArlSLNcf1gUPOx8MTOXBQWcauxmLfXMyaWrjHQ++1dWRFWjNVkUWfv+l17/ZHJHHnaJ6VpzhrZ5uku4LfEH8hgOCL6EYbO1PVXuEvFXDQX6wIFdbXaXSkx78ZgfiJf3xDqxcU1jl7+ipoCe2xkXaRkka0wg1gwCsfF53suXGIEIMRBWqrGJI9vETu5mVQDY="
@@ -78,12 +78,6 @@ jobs:
       name: Performance
       os: linux
       script: bash .ci/performance.sh
-
-    - stage: build
-      name: Linux 3.8-dev
-      os: linux
-      python: 3.8-dev
-      script: bash .ci/test-linux.sh
 
     - stage: build
       name: Source distribution
