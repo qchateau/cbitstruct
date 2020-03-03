@@ -27,7 +27,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="cbitstruct",
-    version="1.0.5",
+    version="1.0.6",
     author="Quentin CHATEAU",
     author_email="quentin.chateau@gmail.com",
     license="GPLv3",
@@ -54,7 +54,7 @@ setup(
     ],
     ext_modules=[
         Extension(
-            "_cbitstruct",
+            "cbitstruct._cbitstruct",
             extra_compile_args=extra_compile_args,
             extra_link_args=extra_link_args,
             sources=["cbitstruct/_cbitstruct.c"],
