@@ -1,4 +1,7 @@
-#!/usr/bin/env python
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 import os
 import sys
 from setuptools import setup, Extension
@@ -27,10 +30,10 @@ with open("README.md", "r") as fh:
 
 setup(
     name="cbitstruct",
-    version="1.0.6",
+    version="1.0.7",
     author="Quentin CHATEAU",
     author_email="quentin.chateau@gmail.com",
-    license="GPLv3",
+    license="MPL-2.0",
     url="https://github.com/qchateau/cbitstruct",
     description="Faster C implementation of bitstruct",
     long_description=long_description,
@@ -38,7 +41,7 @@ setup(
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: C",
-        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+        "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
         "Operating System :: OS Independent",
     ],
     keywords=[

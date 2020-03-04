@@ -1,4 +1,4 @@
-![License](https://img.shields.io/badge/license-GPLv3-brightgreen)  [![Build Status](https://travis-ci.com/qchateau/cbitstruct.svg?branch=master)](https://travis-ci.com/qchateau/cbitstruct) [![Coverage Status](https://coveralls.io/repos/github/qchateau/cbitstruct/badge.svg)](https://coveralls.io/github/qchateau/cbitstruct)
+![License](https://img.shields.io/badge/license-MPL--2.0-brightgreen)  [![Build Status](https://travis-ci.com/qchateau/cbitstruct.svg?branch=master)](https://travis-ci.com/qchateau/cbitstruct) [![Coverage Status](https://coveralls.io/repos/github/qchateau/cbitstruct/badge.svg)](https://coveralls.io/github/qchateau/cbitstruct)
 
 # About
 
