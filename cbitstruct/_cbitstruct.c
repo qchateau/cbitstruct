@@ -496,7 +496,13 @@ static bool python_to_parsed_elements(
             }
             break;
         case 'f':
-#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 6
+#if PY_VERSION_HEX >= 0x030B00A7
+            if (desc->bits == 16) {
+                double cv = PyFloat_AsDouble(v);
+                PyFloat_Pack2(cv, (char*)el->raw, PY_LITTLE_ENDIAN);
+            }
+            else
+#elif PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 6
             if (desc->bits == 16) {
                 double cv = PyFloat_AsDouble(v);
                 _PyFloat_Pack2(cv, el->raw, PY_LITTLE_ENDIAN);
@@ -573,7 +579,16 @@ static PyObject* parsed_elements_to_python(ParsedElement* elements, CompiledForm
 #endif // SIZEOF_LONG >= 8
             break;
         case 'f':
-#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 6
+#if PY_VERSION_HEX >= 0x030B00A7
+            if (desc->bits == 16) {
+                double cv = PyFloat_Unpack2((const char*)el->raw, PY_LITTLE_ENDIAN);
+                if (cv == -1.0 && PyErr_Occurred()) {
+                    break;
+                }
+                v = PyFloat_FromDouble(cv);
+            }
+            else
+#elif PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 6
             if (desc->bits == 16) {
                 double cv = _PyFloat_Unpack2(el->raw, PY_LITTLE_ENDIAN);
                 if (cv == -1.0 && PyErr_Occurred()) {
