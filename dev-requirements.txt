@@ -1,4 +1,4 @@
-nose
+nose2
 bitstruct
 wheel
 setuptools

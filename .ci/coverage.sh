@@ -9,5 +9,5 @@ python setup.py install
 
 # move to a different directory to avoid picking-up the local files
 mkdir ci-coverage && cd ci-coverage
-python -m nose cbitstruct
+python -m nose2 cbitstruct
 coveralls --exclude clinic --gcov-options '\-lp'
