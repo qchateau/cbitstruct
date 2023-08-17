@@ -19,7 +19,7 @@ CompiledFormat___init__(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     int return_value = -1;
     static const char * const _keywords[] = {"fmt", NULL};
-    static _PyArg_Parser _parser = {"s:CompiledFormat", _keywords, 0};
+    static _PyArg_Parser _parser = {.format="s:CompiledFormat", .keywords=_keywords, .fname=0};
     const char *fmt;
 
     if (!_PyArg_ParseTupleAndKeywordsFast(args, kwargs, &_parser,
@@ -77,7 +77,7 @@ CompiledFormat_unpack(PyCompiledFormatObject *self, PyObject *const *args, Py_ss
 {
     PyObject *return_value = NULL;
     static const char * const _keywords[] = {"data", NULL};
-    static _PyArg_Parser _parser = {"y*:unpack", _keywords, 0};
+    static _PyArg_Parser _parser = {.format="y*:unpack", .keywords=_keywords, .fname=0};
     Py_buffer data = {NULL, NULL};
 
     if (!_PyArg_ParseStackAndKeywords(args, nargs, kwnames, &_parser,
@@ -113,7 +113,7 @@ CompiledFormat_unpack_from(PyCompiledFormatObject *self, PyObject *const *args, 
 {
     PyObject *return_value = NULL;
     static const char * const _keywords[] = {"data", "offset", NULL};
-    static _PyArg_Parser _parser = {"y*|n:unpack_from", _keywords, 0};
+    static _PyArg_Parser _parser = {.format="y*|n:unpack_from", .keywords=_keywords, .fname=0};
     Py_buffer data = {NULL, NULL};
     Py_ssize_t offset = 0;
 
@@ -151,7 +151,7 @@ CompiledFormatDict___init__(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     int return_value = -1;
     static const char * const _keywords[] = {"fmt", "names", NULL};
-    static _PyArg_Parser _parser = {"sO:CompiledFormatDict", _keywords, 0};
+    static _PyArg_Parser _parser = {.format="sO:CompiledFormatDict", .keywords=_keywords, .fname=0};
     const char *fmt;
     PyObject *names;
 
@@ -187,7 +187,7 @@ CompiledFormatDict_pack(PyCompiledFormatDictObject *self, PyObject *const *args,
 {
     PyObject *return_value = NULL;
     static const char * const _keywords[] = {"data", NULL};
-    static _PyArg_Parser _parser = {"O:pack", _keywords, 0};
+    static _PyArg_Parser _parser = {.format="O:pack", .keywords=_keywords, .fname=0};
     PyObject *data;
 
     if (!_PyArg_ParseStackAndKeywords(args, nargs, kwnames, &_parser,
@@ -221,7 +221,7 @@ CompiledFormatDict_pack_into(PyCompiledFormatDictObject *self, PyObject *const *
 {
     PyObject *return_value = NULL;
     static const char * const _keywords[] = {"buf", "offset", "data", "fill_padding", NULL};
-    static _PyArg_Parser _parser = {"y*nO|$p:pack_into", _keywords, 0};
+    static _PyArg_Parser _parser = {.format="y*nO|$p:pack_into", .keywords=_keywords, .fname=0};
     Py_buffer buf = {NULL, NULL};
     Py_ssize_t offset;
     PyObject *data;
@@ -262,7 +262,7 @@ CompiledFormatDict_unpack(PyCompiledFormatDictObject *self, PyObject *const *arg
 {
     PyObject *return_value = NULL;
     static const char * const _keywords[] = {"data", NULL};
-    static _PyArg_Parser _parser = {"y*:unpack", _keywords, 0};
+    static _PyArg_Parser _parser = {.format="y*:unpack", .keywords=_keywords, .fname=0};
     Py_buffer data = {NULL, NULL};
 
     if (!_PyArg_ParseStackAndKeywords(args, nargs, kwnames, &_parser,
@@ -300,7 +300,7 @@ CompiledFormatDict_unpack_from(PyCompiledFormatDictObject *self, PyObject *const
 {
     PyObject *return_value = NULL;
     static const char * const _keywords[] = {"data", "offset", NULL};
-    static _PyArg_Parser _parser = {"y*|n:unpack_from", _keywords, 0};
+    static _PyArg_Parser _parser = {.format="y*|n:unpack_from", .keywords=_keywords, .fname=0};
     Py_buffer data = {NULL, NULL};
     Py_ssize_t offset = 0;
 
@@ -339,7 +339,7 @@ pack_dict(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *k
 {
     PyObject *return_value = NULL;
     static const char * const _keywords[] = {"fmt", "names", "data", NULL};
-    static _PyArg_Parser _parser = {"sOO:pack_dict", _keywords, 0};
+    static _PyArg_Parser _parser = {.format="sOO:pack_dict", .keywords=_keywords, .fname=0};
     const char *fmt;
     PyObject *names;
     PyObject *data;
@@ -376,7 +376,7 @@ pack_into_dict(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObje
 {
     PyObject *return_value = NULL;
     static const char * const _keywords[] = {"fmt", "names", "buf", "offset", "data", "fill_padding", NULL};
-    static _PyArg_Parser _parser = {"sOy*nO|$p:pack_into_dict", _keywords, 0};
+    static _PyArg_Parser _parser = {.format="sOy*nO|$p:pack_into_dict", .keywords=_keywords, .fname=0};
     const char *fmt;
     PyObject *names;
     Py_buffer buf = {NULL, NULL};
@@ -416,7 +416,7 @@ unpack(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *kwna
 {
     PyObject *return_value = NULL;
     static const char * const _keywords[] = {"fmt", "data", NULL};
-    static _PyArg_Parser _parser = {"sy*:unpack", _keywords, 0};
+    static _PyArg_Parser _parser = {.format="sy*:unpack", .keywords=_keywords, .fname=0};
     const char *fmt;
     Py_buffer data = {NULL, NULL};
 
@@ -455,7 +455,7 @@ unpack_from(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject 
 {
     PyObject *return_value = NULL;
     static const char * const _keywords[] = {"fmt", "data", "offset", NULL};
-    static _PyArg_Parser _parser = {"sy*|n:unpack_from", _keywords, 0};
+    static _PyArg_Parser _parser = {.format="sy*|n:unpack_from", .keywords=_keywords, .fname=0};
     const char *fmt;
     Py_buffer data = {NULL, NULL};
     Py_ssize_t offset = 0;
@@ -495,7 +495,7 @@ unpack_dict(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject 
 {
     PyObject *return_value = NULL;
     static const char * const _keywords[] = {"fmt", "names", "data", NULL};
-    static _PyArg_Parser _parser = {"sOy*:unpack_dict", _keywords, 0};
+    static _PyArg_Parser _parser = {.format="sOy*:unpack_dict", .keywords=_keywords, .fname=0};
     const char *fmt;
     PyObject *names;
     Py_buffer data = {NULL, NULL};
@@ -535,7 +535,7 @@ unpack_from_dict(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyOb
 {
     PyObject *return_value = NULL;
     static const char * const _keywords[] = {"fmt", "names", "data", "offset", NULL};
-    static _PyArg_Parser _parser = {"sOy*|n:unpack_from_dict", _keywords, 0};
+    static _PyArg_Parser _parser = {.format="sOy*|n:unpack_from_dict", .keywords=_keywords, .fname=0};
     const char *fmt;
     PyObject *names;
     Py_buffer data = {NULL, NULL};
@@ -573,7 +573,7 @@ compile(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *kwn
 {
     PyObject *return_value = NULL;
     static const char * const _keywords[] = {"fmt", "names", NULL};
-    static _PyArg_Parser _parser = {"s|O:compile", _keywords, 0};
+    static _PyArg_Parser _parser = {.format="s|O:compile", .keywords=_keywords, .fname=0};
     const char *fmt;
     PyObject *names = Py_None;
 
@@ -604,7 +604,7 @@ calcsize(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *kw
 {
     PyObject *return_value = NULL;
     static const char * const _keywords[] = {"fmt", NULL};
-    static _PyArg_Parser _parser = {"s:calcsize", _keywords, 0};
+    static _PyArg_Parser _parser = {.format="s:calcsize", .keywords=_keywords, .fname=0};
     const char *fmt;
     Py_ssize_t _return_value;
 
@@ -645,7 +645,7 @@ byteswap(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *kw
 {
     PyObject *return_value = NULL;
     static const char * const _keywords[] = {"fmt", "data", "offset", NULL};
-    static _PyArg_Parser _parser = {"Oy*|n:byteswap", _keywords, 0};
+    static _PyArg_Parser _parser = {.format="Oy*|n:byteswap", .keywords=_keywords, .fname=0};
     PyObject *fmt;
     Py_buffer data = {NULL, NULL};
     Py_ssize_t offset = 0;
