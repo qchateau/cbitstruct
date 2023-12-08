@@ -54,6 +54,7 @@ setup(
         "bit pack",
         "C",
     ],
+    extras_require={"test": ["bitstruct"]},
     ext_modules=[
         Extension(
             "cbitstruct._cbitstruct",

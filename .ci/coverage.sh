@@ -3,11 +3,11 @@ set -e -x
 
 export COVERAGE=1
 
-python -m pip install -U -r dev-requirements.txt
+python -m pip install .[test]
 python -m pip install -U cpp-coveralls
-python setup.py install
 
-# move to a different directory to avoid picking-up the local files
+# Move to a different directory to avoid picking-up the local files.
+# Alternatively, in Python 3.11+ use the interpreter's -P option to ignore local files.
 mkdir ci-coverage && cd ci-coverage
-python -m nose2 cbitstruct
+python -m unittest discover cbitstruct
 coveralls --exclude clinic --gcov-options '\-lp'

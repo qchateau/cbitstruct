@@ -1,4 +1,0 @@
-nose2
-bitstruct
-wheel
-setuptools
