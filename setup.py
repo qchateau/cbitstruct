@@ -12,16 +12,14 @@ extra_link_args = []
 undef_macros = []
 
 
-if sys.platform == "win32":
-    extra_compile_args += []
-else:
-    extra_compile_args += ["-std=c11", "-Wall", "-Werror", "-O3"]
+if sys.platform != "win32":
+    extra_compile_args.extend(("-std=c11", "-Wall", "-Werror", "-O3"))
 
 
 if os.environ.get("COVERAGE"):
-    extra_compile_args += ["-g", "-O0", "-fprofile-arcs", "-ftest-coverage"]
-    extra_link_args += ["-fprofile-arcs"]
-    undef_macros += ["NDEBUG"]
+    extra_compile_args.extend(("-g", "-O0", "-fprofile-arcs", "-ftest-coverage"))
+    extra_link_args.append("-fprofile-arcs")
+    undef_macros.append("NDEBUG")
 
 
 with open("README.md", "r") as fh:
@@ -38,6 +36,7 @@ setup(
     description="Faster C implementation of bitstruct",
     long_description=long_description,
     long_description_content_type="text/markdown",
+    python_requires=">=3.6",
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: C",
