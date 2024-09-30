@@ -829,7 +829,9 @@ typedef struct {
     PyObject* names;
 } PyCompiledFormatDictObject;
 
-#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 7
+#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 13
+#include "clinic/_cbitstruct.c.313.h"
+#elif PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 7
 #include "clinic/_cbitstruct.c.37.h"
 #elif PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 6
 #include "clinic/_cbitstruct.c.36.h"
