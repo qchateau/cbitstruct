@@ -12,8 +12,9 @@ jobs:
       - name: Build sdist
         run: pipx run build --sdist
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          name: sources
           path: dist/*.tar.gz
 
   build_wheels:
@@ -26,8 +27,9 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.21.1
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          name: wheel
           path: ./wheelhouse/*.whl
 
   publish_pypi:
