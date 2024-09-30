@@ -18,14 +18,12 @@ static int
 CompiledFormat___init__(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     int return_value = -1;
-    static const char * const _keywords[] = {"fmt", NULL};
-    static _PyArg_Parser _parser = {.format="s:CompiledFormat", .keywords=_keywords, .fname=0};
+    static char *_keywords[] = {"fmt", NULL};
     const char *fmt;
 
-    if (!_PyArg_ParseTupleAndKeywordsFast(args, kwargs, &_parser,
-        &fmt)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s:CompiledFormat", _keywords,
+        &fmt))
         goto exit;
-    }
     return_value = CompiledFormat___init___impl((PyCompiledFormatObject *)self, fmt);
 
 exit:
@@ -67,22 +65,21 @@ PyDoc_STRVAR(CompiledFormat_unpack__doc__,
 "Return a tuple containing unpacked values.");
 
 #define COMPILEDFORMAT_UNPACK_METHODDEF    \
-    {"unpack", (PyCFunction)CompiledFormat_unpack, METH_VARARGS|METH_KEYWORDS, CompiledFormat_unpack__doc__},
+    {"unpack", (PyCFunction)(void(*)(void))CompiledFormat_unpack, METH_VARARGS|METH_KEYWORDS, CompiledFormat_unpack__doc__},
 
 static PyObject *
 CompiledFormat_unpack_impl(PyCompiledFormatObject *self, Py_buffer *data);
 
 static PyObject *
-CompiledFormat_unpack(PyCompiledFormatObject *self, PyObject *args, PyObject *kwds)
+CompiledFormat_unpack(PyCompiledFormatObject *self, PyObject *args, PyObject *kwargs)
 {
     PyObject *return_value = NULL;
     static char *_keywords[] = {"data", NULL};
     Py_buffer data = {NULL, NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "y*:unpack", _keywords,
-        &data)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "y*:unpack", _keywords,
+        &data))
         goto exit;
-    }
     return_value = CompiledFormat_unpack_impl(self, &data);
 
 exit:
@@ -101,24 +98,23 @@ PyDoc_STRVAR(CompiledFormat_unpack_from__doc__,
 "Return a tuple containing unpacked values starting at \'offset\' bits.");
 
 #define COMPILEDFORMAT_UNPACK_FROM_METHODDEF    \
-    {"unpack_from", (PyCFunction)CompiledFormat_unpack_from, METH_VARARGS|METH_KEYWORDS, CompiledFormat_unpack_from__doc__},
+    {"unpack_from", (PyCFunction)(void(*)(void))CompiledFormat_unpack_from, METH_VARARGS|METH_KEYWORDS, CompiledFormat_unpack_from__doc__},
 
 static PyObject *
 CompiledFormat_unpack_from_impl(PyCompiledFormatObject *self,
                                 Py_buffer *data, Py_ssize_t offset);
 
 static PyObject *
-CompiledFormat_unpack_from(PyCompiledFormatObject *self, PyObject *args, PyObject *kwds)
+CompiledFormat_unpack_from(PyCompiledFormatObject *self, PyObject *args, PyObject *kwargs)
 {
     PyObject *return_value = NULL;
     static char *_keywords[] = {"data", "offset", NULL};
     Py_buffer data = {NULL, NULL};
     Py_ssize_t offset = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "y*|n:unpack_from", _keywords,
-        &data, &offset)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "y*|n:unpack_from", _keywords,
+        &data, &offset))
         goto exit;
-    }
     return_value = CompiledFormat_unpack_from_impl(self, &data, offset);
 
 exit:
@@ -148,15 +144,13 @@ static int
 CompiledFormatDict___init__(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     int return_value = -1;
-    static const char * const _keywords[] = {"fmt", "names", NULL};
-    static _PyArg_Parser _parser = {.format="sO:CompiledFormatDict", .keywords=_keywords, .fname=0};
+    static char *_keywords[] = {"fmt", "names", NULL};
     const char *fmt;
     PyObject *names;
 
-    if (!_PyArg_ParseTupleAndKeywordsFast(args, kwargs, &_parser,
-        &fmt, &names)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sO:CompiledFormatDict", _keywords,
+        &fmt, &names))
         goto exit;
-    }
     return_value = CompiledFormatDict___init___impl((PyCompiledFormatDictObject *)self, fmt, names);
 
 exit:
@@ -174,23 +168,22 @@ PyDoc_STRVAR(CompiledFormatDict_pack__doc__,
 "used when constructing this object.");
 
 #define COMPILEDFORMATDICT_PACK_METHODDEF    \
-    {"pack", (PyCFunction)CompiledFormatDict_pack, METH_VARARGS|METH_KEYWORDS, CompiledFormatDict_pack__doc__},
+    {"pack", (PyCFunction)(void(*)(void))CompiledFormatDict_pack, METH_VARARGS|METH_KEYWORDS, CompiledFormatDict_pack__doc__},
 
 static PyObject *
 CompiledFormatDict_pack_impl(PyCompiledFormatDictObject *self,
                              PyObject *data);
 
 static PyObject *
-CompiledFormatDict_pack(PyCompiledFormatDictObject *self, PyObject *args, PyObject *kwds)
+CompiledFormatDict_pack(PyCompiledFormatDictObject *self, PyObject *args, PyObject *kwargs)
 {
     PyObject *return_value = NULL;
     static char *_keywords[] = {"data", NULL};
     PyObject *data;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O:pack", _keywords,
-        &data)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O:pack", _keywords,
+        &data))
         goto exit;
-    }
     return_value = CompiledFormatDict_pack_impl(self, data);
 
 exit:
@@ -206,7 +199,7 @@ PyDoc_STRVAR(CompiledFormatDict_pack_into__doc__,
 "With fill_padding=False, passing bits in \'buf\' will not be modified.");
 
 #define COMPILEDFORMATDICT_PACK_INTO_METHODDEF    \
-    {"pack_into", (PyCFunction)CompiledFormatDict_pack_into, METH_VARARGS|METH_KEYWORDS, CompiledFormatDict_pack_into__doc__},
+    {"pack_into", (PyCFunction)(void(*)(void))CompiledFormatDict_pack_into, METH_VARARGS|METH_KEYWORDS, CompiledFormatDict_pack_into__doc__},
 
 static PyObject *
 CompiledFormatDict_pack_into_impl(PyCompiledFormatDictObject *self,
@@ -214,7 +207,7 @@ CompiledFormatDict_pack_into_impl(PyCompiledFormatDictObject *self,
                                   PyObject *data, int fill_padding);
 
 static PyObject *
-CompiledFormatDict_pack_into(PyCompiledFormatDictObject *self, PyObject *args, PyObject *kwds)
+CompiledFormatDict_pack_into(PyCompiledFormatDictObject *self, PyObject *args, PyObject *kwargs)
 {
     PyObject *return_value = NULL;
     static char *_keywords[] = {"buf", "offset", "data", "fill_padding", NULL};
@@ -223,10 +216,9 @@ CompiledFormatDict_pack_into(PyCompiledFormatDictObject *self, PyObject *args, P
     PyObject *data;
     int fill_padding = 1;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "y*nO|$p:pack_into", _keywords,
-        &buf, &offset, &data, &fill_padding)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "y*nO|$p:pack_into", _keywords,
+        &buf, &offset, &data, &fill_padding))
         goto exit;
-    }
     return_value = CompiledFormatDict_pack_into_impl(self, &buf, offset, data, fill_padding);
 
 exit:
@@ -247,23 +239,22 @@ PyDoc_STRVAR(CompiledFormatDict_unpack__doc__,
 "Return a dict containing unpacked values.");
 
 #define COMPILEDFORMATDICT_UNPACK_METHODDEF    \
-    {"unpack", (PyCFunction)CompiledFormatDict_unpack, METH_VARARGS|METH_KEYWORDS, CompiledFormatDict_unpack__doc__},
+    {"unpack", (PyCFunction)(void(*)(void))CompiledFormatDict_unpack, METH_VARARGS|METH_KEYWORDS, CompiledFormatDict_unpack__doc__},
 
 static PyObject *
 CompiledFormatDict_unpack_impl(PyCompiledFormatDictObject *self,
                                Py_buffer *data);
 
 static PyObject *
-CompiledFormatDict_unpack(PyCompiledFormatDictObject *self, PyObject *args, PyObject *kwds)
+CompiledFormatDict_unpack(PyCompiledFormatDictObject *self, PyObject *args, PyObject *kwargs)
 {
     PyObject *return_value = NULL;
     static char *_keywords[] = {"data", NULL};
     Py_buffer data = {NULL, NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "y*:unpack", _keywords,
-        &data)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "y*:unpack", _keywords,
+        &data))
         goto exit;
-    }
     return_value = CompiledFormatDict_unpack_impl(self, &data);
 
 exit:
@@ -284,24 +275,23 @@ PyDoc_STRVAR(CompiledFormatDict_unpack_from__doc__,
 "Return a dict containing unpacked values.");
 
 #define COMPILEDFORMATDICT_UNPACK_FROM_METHODDEF    \
-    {"unpack_from", (PyCFunction)CompiledFormatDict_unpack_from, METH_VARARGS|METH_KEYWORDS, CompiledFormatDict_unpack_from__doc__},
+    {"unpack_from", (PyCFunction)(void(*)(void))CompiledFormatDict_unpack_from, METH_VARARGS|METH_KEYWORDS, CompiledFormatDict_unpack_from__doc__},
 
 static PyObject *
 CompiledFormatDict_unpack_from_impl(PyCompiledFormatDictObject *self,
                                     Py_buffer *data, Py_ssize_t offset);
 
 static PyObject *
-CompiledFormatDict_unpack_from(PyCompiledFormatDictObject *self, PyObject *args, PyObject *kwds)
+CompiledFormatDict_unpack_from(PyCompiledFormatDictObject *self, PyObject *args, PyObject *kwargs)
 {
     PyObject *return_value = NULL;
     static char *_keywords[] = {"data", "offset", NULL};
     Py_buffer data = {NULL, NULL};
     Py_ssize_t offset = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "y*|n:unpack_from", _keywords,
-        &data, &offset)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "y*|n:unpack_from", _keywords,
+        &data, &offset))
         goto exit;
-    }
     return_value = CompiledFormatDict_unpack_from_impl(self, &data, offset);
 
 exit:
@@ -322,14 +312,14 @@ PyDoc_STRVAR(pack_dict__doc__,
 "The order of value is determines by the list \'names\'.");
 
 #define PACK_DICT_METHODDEF    \
-    {"pack_dict", (PyCFunction)pack_dict, METH_VARARGS|METH_KEYWORDS, pack_dict__doc__},
+    {"pack_dict", (PyCFunction)(void(*)(void))pack_dict, METH_VARARGS|METH_KEYWORDS, pack_dict__doc__},
 
 static PyObject *
 pack_dict_impl(PyObject *module, const char *fmt, PyObject *names,
                PyObject *data);
 
 static PyObject *
-pack_dict(PyObject *module, PyObject *args, PyObject *kwds)
+pack_dict(PyObject *module, PyObject *args, PyObject *kwargs)
 {
     PyObject *return_value = NULL;
     static char *_keywords[] = {"fmt", "names", "data", NULL};
@@ -337,10 +327,9 @@ pack_dict(PyObject *module, PyObject *args, PyObject *kwds)
     PyObject *names;
     PyObject *data;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "sOO:pack_dict", _keywords,
-        &fmt, &names, &data)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sOO:pack_dict", _keywords,
+        &fmt, &names, &data))
         goto exit;
-    }
     return_value = pack_dict_impl(module, fmt, names, data);
 
 exit:
@@ -357,7 +346,7 @@ PyDoc_STRVAR(pack_into_dict__doc__,
 "With fill_padding=False, passing bits in \'buf\' will not be modified.");
 
 #define PACK_INTO_DICT_METHODDEF    \
-    {"pack_into_dict", (PyCFunction)pack_into_dict, METH_VARARGS|METH_KEYWORDS, pack_into_dict__doc__},
+    {"pack_into_dict", (PyCFunction)(void(*)(void))pack_into_dict, METH_VARARGS|METH_KEYWORDS, pack_into_dict__doc__},
 
 static PyObject *
 pack_into_dict_impl(PyObject *module, const char *fmt, PyObject *names,
@@ -365,7 +354,7 @@ pack_into_dict_impl(PyObject *module, const char *fmt, PyObject *names,
                     int fill_padding);
 
 static PyObject *
-pack_into_dict(PyObject *module, PyObject *args, PyObject *kwds)
+pack_into_dict(PyObject *module, PyObject *args, PyObject *kwargs)
 {
     PyObject *return_value = NULL;
     static char *_keywords[] = {"fmt", "names", "buf", "offset", "data", "fill_padding", NULL};
@@ -376,10 +365,9 @@ pack_into_dict(PyObject *module, PyObject *args, PyObject *kwds)
     PyObject *data;
     int fill_padding = 1;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "sOy*nO|$p:pack_into_dict", _keywords,
-        &fmt, &names, &buf, &offset, &data, &fill_padding)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sOy*nO|$p:pack_into_dict", _keywords,
+        &fmt, &names, &buf, &offset, &data, &fill_padding))
         goto exit;
-    }
     return_value = pack_into_dict_impl(module, fmt, names, &buf, offset, data, fill_padding);
 
 exit:
@@ -398,23 +386,22 @@ PyDoc_STRVAR(unpack__doc__,
 "Unpack data according to the format \'fmt\'. Returns a tuple.");
 
 #define UNPACK_METHODDEF    \
-    {"unpack", (PyCFunction)unpack, METH_VARARGS|METH_KEYWORDS, unpack__doc__},
+    {"unpack", (PyCFunction)(void(*)(void))unpack, METH_VARARGS|METH_KEYWORDS, unpack__doc__},
 
 static PyObject *
 unpack_impl(PyObject *module, const char *fmt, Py_buffer *data);
 
 static PyObject *
-unpack(PyObject *module, PyObject *args, PyObject *kwds)
+unpack(PyObject *module, PyObject *args, PyObject *kwargs)
 {
     PyObject *return_value = NULL;
     static char *_keywords[] = {"fmt", "data", NULL};
     const char *fmt;
     Py_buffer data = {NULL, NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "sy*:unpack", _keywords,
-        &fmt, &data)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sy*:unpack", _keywords,
+        &fmt, &data))
         goto exit;
-    }
     return_value = unpack_impl(module, fmt, &data);
 
 exit:
@@ -435,14 +422,14 @@ PyDoc_STRVAR(unpack_from__doc__,
 "Returns a tuple.");
 
 #define UNPACK_FROM_METHODDEF    \
-    {"unpack_from", (PyCFunction)unpack_from, METH_VARARGS|METH_KEYWORDS, unpack_from__doc__},
+    {"unpack_from", (PyCFunction)(void(*)(void))unpack_from, METH_VARARGS|METH_KEYWORDS, unpack_from__doc__},
 
 static PyObject *
 unpack_from_impl(PyObject *module, const char *fmt, Py_buffer *data,
                  Py_ssize_t offset);
 
 static PyObject *
-unpack_from(PyObject *module, PyObject *args, PyObject *kwds)
+unpack_from(PyObject *module, PyObject *args, PyObject *kwargs)
 {
     PyObject *return_value = NULL;
     static char *_keywords[] = {"fmt", "data", "offset", NULL};
@@ -450,10 +437,9 @@ unpack_from(PyObject *module, PyObject *args, PyObject *kwds)
     Py_buffer data = {NULL, NULL};
     Py_ssize_t offset = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "sy*|n:unpack_from", _keywords,
-        &fmt, &data, &offset)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sy*|n:unpack_from", _keywords,
+        &fmt, &data, &offset))
         goto exit;
-    }
     return_value = unpack_from_impl(module, fmt, &data, offset);
 
 exit:
@@ -474,14 +460,14 @@ PyDoc_STRVAR(unpack_dict__doc__,
 "Returns a dict which keys are \'names\'.");
 
 #define UNPACK_DICT_METHODDEF    \
-    {"unpack_dict", (PyCFunction)unpack_dict, METH_VARARGS|METH_KEYWORDS, unpack_dict__doc__},
+    {"unpack_dict", (PyCFunction)(void(*)(void))unpack_dict, METH_VARARGS|METH_KEYWORDS, unpack_dict__doc__},
 
 static PyObject *
 unpack_dict_impl(PyObject *module, const char *fmt, PyObject *names,
                  Py_buffer *data);
 
 static PyObject *
-unpack_dict(PyObject *module, PyObject *args, PyObject *kwds)
+unpack_dict(PyObject *module, PyObject *args, PyObject *kwargs)
 {
     PyObject *return_value = NULL;
     static char *_keywords[] = {"fmt", "names", "data", NULL};
@@ -489,10 +475,9 @@ unpack_dict(PyObject *module, PyObject *args, PyObject *kwds)
     PyObject *names;
     Py_buffer data = {NULL, NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "sOy*:unpack_dict", _keywords,
-        &fmt, &names, &data)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sOy*:unpack_dict", _keywords,
+        &fmt, &names, &data))
         goto exit;
-    }
     return_value = unpack_dict_impl(module, fmt, names, &data);
 
 exit:
@@ -513,14 +498,14 @@ PyDoc_STRVAR(unpack_from_dict__doc__,
 "Returns a dict which keys are \'names\'.");
 
 #define UNPACK_FROM_DICT_METHODDEF    \
-    {"unpack_from_dict", (PyCFunction)unpack_from_dict, METH_VARARGS|METH_KEYWORDS, unpack_from_dict__doc__},
+    {"unpack_from_dict", (PyCFunction)(void(*)(void))unpack_from_dict, METH_VARARGS|METH_KEYWORDS, unpack_from_dict__doc__},
 
 static PyObject *
 unpack_from_dict_impl(PyObject *module, const char *fmt, PyObject *names,
                       Py_buffer *data, Py_ssize_t offset);
 
 static PyObject *
-unpack_from_dict(PyObject *module, PyObject *args, PyObject *kwds)
+unpack_from_dict(PyObject *module, PyObject *args, PyObject *kwargs)
 {
     PyObject *return_value = NULL;
     static char *_keywords[] = {"fmt", "names", "data", "offset", NULL};
@@ -529,10 +514,9 @@ unpack_from_dict(PyObject *module, PyObject *args, PyObject *kwds)
     Py_buffer data = {NULL, NULL};
     Py_ssize_t offset = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "sOy*|n:unpack_from_dict", _keywords,
-        &fmt, &names, &data, &offset)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sOy*|n:unpack_from_dict", _keywords,
+        &fmt, &names, &data, &offset))
         goto exit;
-    }
     return_value = unpack_from_dict_impl(module, fmt, names, &data, offset);
 
 exit:
@@ -551,23 +535,22 @@ PyDoc_STRVAR(compile__doc__,
 "Returns a compiled object for the format \'fmt\'.");
 
 #define COMPILE_METHODDEF    \
-    {"compile", (PyCFunction)compile, METH_VARARGS|METH_KEYWORDS, compile__doc__},
+    {"compile", (PyCFunction)(void(*)(void))compile, METH_VARARGS|METH_KEYWORDS, compile__doc__},
 
 static PyObject *
 compile_impl(PyObject *module, const char *fmt, PyObject *names);
 
 static PyObject *
-compile(PyObject *module, PyObject *args, PyObject *kwds)
+compile(PyObject *module, PyObject *args, PyObject *kwargs)
 {
     PyObject *return_value = NULL;
     static char *_keywords[] = {"fmt", "names", NULL};
     const char *fmt;
     PyObject *names = Py_None;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "s|O:compile", _keywords,
-        &fmt, &names)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s|O:compile", _keywords,
+        &fmt, &names))
         goto exit;
-    }
     return_value = compile_impl(module, fmt, names);
 
 exit:
@@ -581,23 +564,22 @@ PyDoc_STRVAR(calcsize__doc__,
 "Return size in bits of the bit described by the format string.");
 
 #define CALCSIZE_METHODDEF    \
-    {"calcsize", (PyCFunction)calcsize, METH_VARARGS|METH_KEYWORDS, calcsize__doc__},
+    {"calcsize", (PyCFunction)(void(*)(void))calcsize, METH_VARARGS|METH_KEYWORDS, calcsize__doc__},
 
 static Py_ssize_t
 calcsize_impl(PyObject *module, const char *fmt);
 
 static PyObject *
-calcsize(PyObject *module, PyObject *args, PyObject *kwds)
+calcsize(PyObject *module, PyObject *args, PyObject *kwargs)
 {
     PyObject *return_value = NULL;
     static char *_keywords[] = {"fmt", NULL};
     const char *fmt;
     Py_ssize_t _return_value;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "s:calcsize", _keywords,
-        &fmt)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s:calcsize", _keywords,
+        &fmt))
         goto exit;
-    }
     _return_value = calcsize_impl(module, fmt);
     if ((_return_value == -1) && PyErr_Occurred()) {
         goto exit;
@@ -620,14 +602,14 @@ PyDoc_STRVAR(byteswap__doc__,
 "produce the result ``b\'\\x11\\x00\\x55\\x44\\x33\\x22\'``.");
 
 #define BYTESWAP_METHODDEF    \
-    {"byteswap", (PyCFunction)byteswap, METH_VARARGS|METH_KEYWORDS, byteswap__doc__},
+    {"byteswap", (PyCFunction)(void(*)(void))byteswap, METH_VARARGS|METH_KEYWORDS, byteswap__doc__},
 
 static PyObject *
 byteswap_impl(PyObject *module, PyObject *fmt, Py_buffer *data,
               Py_ssize_t offset);
 
 static PyObject *
-byteswap(PyObject *module, PyObject *args, PyObject *kwds)
+byteswap(PyObject *module, PyObject *args, PyObject *kwargs)
 {
     PyObject *return_value = NULL;
     static char *_keywords[] = {"fmt", "data", "offset", NULL};
@@ -635,10 +617,9 @@ byteswap(PyObject *module, PyObject *args, PyObject *kwds)
     Py_buffer data = {NULL, NULL};
     Py_ssize_t offset = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "Oy*|n:byteswap", _keywords,
-        &fmt, &data, &offset)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Oy*|n:byteswap", _keywords,
+        &fmt, &data, &offset))
         goto exit;
-    }
     return_value = byteswap_impl(module, fmt, &data, offset);
 
 exit:
@@ -649,4 +630,4 @@ exit:
 
     return return_value;
 }
-/*[clinic end generated code: output=20c77328e33739fc input=a9049054013a1b77]*/
+/*[clinic end generated code: output=5066999e92716c32 input=a9049054013a1b77]*/
