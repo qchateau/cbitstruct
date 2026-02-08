@@ -36,7 +36,7 @@ setup(
     description="Faster C implementation of bitstruct",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    python_requires=">=3.6",
+    python_requires=">=3.8",
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: C",
