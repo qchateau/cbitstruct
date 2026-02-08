@@ -1413,6 +1413,9 @@ static PyObject* pack_into(PyObject* module, PyObject* args, PyObject* kwargs)
 
 exit:
     CompiledFormat_deinit(&self);
+    if (buffer.obj) {
+        PyBuffer_Release(&buffer);
+    }
     return return_value;
 }
 

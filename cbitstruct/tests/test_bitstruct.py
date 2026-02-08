@@ -460,6 +460,9 @@ class BitstructTest(unittest.TestCase):
             packed = bytearray(b'\x00')
             pack_into('b1t24', packed, 0, False)
 
+        # Ensure buffer was released correctly
+        packed.extend(b'extendable')
+
     def test_unpack_from(self):
         """Unpack values at given bit offset.
 
