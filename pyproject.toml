@@ -4,14 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
 build = [
-    "cp36-manylinux_x86_64",
-    "cp37-manylinux_x86_64",
     "cp38-manylinux_x86_64",
     "cp39-manylinux_x86_64",
     "cp310-manylinux_x86_64",
     "cp311-manylinux_x86_64",
     "cp312-manylinux_x86_64",
     "cp313-manylinux_x86_64",
+    "cp314-manylinux_x86_64",
 ]
 test-extras = "test"
 test-command = "python -m unittest discover cbitstruct"
