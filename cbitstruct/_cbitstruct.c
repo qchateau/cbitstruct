@@ -831,8 +831,8 @@ typedef struct {
 
 #if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 13
 #include "clinic/_cbitstruct.c.313.h"
-#elif PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 8
-#include "clinic/_cbitstruct.c.38.h"
+#elif PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 9
+#include "clinic/_cbitstruct.c.39.h"
 #else
 #error "Unsupported python version"
 #endif
